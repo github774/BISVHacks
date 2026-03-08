@@ -7,36 +7,50 @@ effect on B from A = A_damage * B_vulnerability * (influence_A * logistic(simila
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
 
+# Add src to path for genagents import
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
+
+from genagents import gen_agents, agent_enc, Agent
+
 
 # ---------------------------------------------------------------------------
-# 1. Load data
+# 1. Generate or load data
 # ---------------------------------------------------------------------------
 
-def load_archetypes(path: str | Path) -> tuple[list[dict], dict[str, str]]:
-    """Load archetypes.json; return list of archetype dicts and archetype_keys."""
-    path = Path(path)
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    return data["archetypes"], data["archetype_keys"]
+def generate_agents_with_embeddings(n_agents: int, device: str = "cpu") -> list[Agent]:
+    """Generate agents with descriptions, embeddings, and persona vectors."""
+    agents = gen_agents(n_agents)
+    agents = agent_enc(agents, device=device)
+    return agents
 
 
-def load_persona_vectors(path: str | Path) -> np.ndarray:
-    """Load persona_vectors.json; return (N, D) array indexed by archetype_id."""
-    path = Path(path)
-    with open(path, encoding="utf-8") as f:
-        items = json.load(f)
-    # Assume archetype_id in 0..N-1; build dense matrix
-    n = len(items)
-    d = len(items[0]["persona_vector"])
+def agents_to_archetypes(agents: list[Agent]) -> list[dict]:
+    """Convert Agent objects to archetype-like dicts for compatibility."""
+    archetypes = []
+    for agent in agents:
+        archetype = {
+            "archetype_id": agent.id,
+            "profile": agent.attrs,  # attrs already has string keys
+            "description": agent.desc_str,
+        }
+        archetypes.append(archetype)
+    return archetypes
+
+
+def agents_to_persona_matrix(agents: list[Agent]) -> np.ndarray:
+    """Extract persona vectors from agents into (N, D) matrix."""
+    n = len(agents)
+    d = len(agents[0].persona_v) if n > 0 else 0
     matrix = np.zeros((n, d), dtype=np.float64)
-    for item in items:
-        i = item["archetype_id"]
-        matrix[i] = item["persona_vector"]
+    for i, agent in enumerate(agents):
+        matrix[i] = agent.persona_v
     return matrix
 
 
@@ -362,28 +376,45 @@ def all_affected_with_attributes(
 
 class MarginalizationNetwork:
     """
-    Network of archetypes: load data, precompute vulnerability, influence,
+    Network of archetypes: generate or load data, precompute vulnerability, influence,
     similarity, and edge weights; then run one-step or cascading effect.
     """
 
     def __init__(
         self,
-        archetypes_path: str | Path = "archetypes.json",
-        persona_vectors_path: str | Path = "persona_vectors.json",
+        n_agents: Optional[int] = None,
+        use_generated: bool = True,
+        device: str = "cpu",
+        archetypes_path: Optional[str | Path] = None,
+        persona_vectors_path: Optional[str | Path] = None,
         similarity_threshold: Optional[float] = None,
         logistic_k: float = 1.0,
         logistic_x0: float = 0.5,
-        max_archetypes: Optional[int] = None,
     ):
-        self.archetypes_path = Path(archetypes_path)
-        self.persona_vectors_path = Path(persona_vectors_path)
+        """
+        Initialize network.
+        
+        Args:
+            n_agents: Number of agents to generate (if use_generated=True)
+            use_generated: If True, generate agents; if False, load from JSON files
+            device: Device for encoding ('cpu', 'mps', 'cuda')
+            archetypes_path: Path to archetypes.json (only if use_generated=False)
+            persona_vectors_path: Path to persona_vectors.json (only if use_generated=False)
+            similarity_threshold: Threshold for similarity matrix
+            logistic_k: Logistic curve steepness
+            logistic_x0: Logistic curve midpoint
+        """
+        self.n_agents = n_agents
+        self.use_generated = use_generated
+        self.device = device
+        self.archetypes_path = Path(archetypes_path) if archetypes_path else None
+        self.persona_vectors_path = Path(persona_vectors_path) if persona_vectors_path else None
         self.similarity_threshold = similarity_threshold
         self.logistic_k = logistic_k
         self.logistic_x0 = logistic_x0
-        self.max_archetypes = max_archetypes
 
+        self.agents: list[Agent] = []
         self.archetypes: list[dict] = []
-        self.archetype_keys: dict[str, str] = {}
         self.n_nodes = 0
 
         self._vulnerability: Optional[np.ndarray] = None
@@ -393,13 +424,23 @@ class MarginalizationNetwork:
         self._vectors: Optional[np.ndarray] = None
 
     def load(self) -> None:
-        """Load JSON and build vulnerability, influence, similarity, weights."""
-        self.archetypes, self.archetype_keys = load_archetypes(self.archetypes_path)
-        self._vectors = load_persona_vectors(self.persona_vectors_path)
-        if self.max_archetypes is not None:
-            n = min(self.max_archetypes, len(self.archetypes), len(self._vectors))
-            self.archetypes = self.archetypes[:n]
-            self._vectors = self._vectors[:n]
+        """Generate or load data and build vulnerability, influence, similarity, weights."""
+        if self.use_generated:
+            # Generate agents
+            if self.n_agents is None:
+                raise ValueError("n_agents must be specified when use_generated=True")
+            print(f"Generating {self.n_agents} agents...")
+            self.agents = generate_agents_with_embeddings(self.n_agents, device=self.device)
+            self.archetypes = agents_to_archetypes(self.agents)
+            self._vectors = agents_to_persona_matrix(self.agents)
+        else:
+            # Load from JSON files (legacy mode)
+            if self.archetypes_path is None or self.persona_vectors_path is None:
+                raise ValueError("archetypes_path and persona_vectors_path required when use_generated=False")
+            # Note: load_archetypes and load_persona_vectors functions removed
+            # This is legacy mode and not the primary use case
+            raise NotImplementedError("Legacy JSON loading removed. Use use_generated=True.")
+        
         self.n_nodes = len(self.archetypes)
 
         self._vulnerability = compute_vulnerability(self.archetypes)
@@ -521,11 +562,12 @@ class MarginalizationNetwork:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    # JSON data lives in project root data/
-    data_dir = Path(__file__).resolve().parent.parent / "data"
+    # Generate agents and build network
+    print("Generating agents and building network...")
     net = MarginalizationNetwork(
-        archetypes_path=data_dir / "archetypes.json",
-        persona_vectors_path=data_dir / "persona_vectors.json",
+        n_agents=50,  # Generate 50 agents
+        use_generated=True,
+        device="cpu",  # Use 'mps', 'cuda', or 'cpu'
         logistic_k=1.0,
         logistic_x0=0.5,
     )

@@ -187,7 +187,7 @@ def preprocess_batched_mps_preloaded(
     top_k: int = 10,
     round_to: float = 0.0001,
     scale: float = 10000,
-) -> torch.Tensor:
+) -> torch.Tensor: # get persona/qa from desc
     """
     Batched MPS preprocess with pre-loaded desc/pers on device.
     embeddings: (B, 384) on device, desc_t: (N, 384), pers_t: (N, 384).

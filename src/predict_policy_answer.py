@@ -47,6 +47,24 @@ def _load_resources(
     _DAM_EMB = dam
 
 
+def encode_policy(policy_question: str) -> torch.Tensor:
+    """Encode policy question to embedding."""
+    if _ENCODER is None:
+        _load_resources()
+    device = next(_MODEL.parameters()).device
+    q_emb = _ENCODER.encode(policy_question, convert_to_numpy=True)
+    q_t = torch.tensor(q_emb, dtype=torch.float32, device=device).unsqueeze(0)
+    return q_t
+
+def encode_description(description: str) -> torch.Tensor:
+    """Encode description to embedding."""
+    if _ENCODER is None:
+        _load_resources()
+    device = next(_MODEL.parameters()).device
+    desc_emb = _ENCODER.encode(description, convert_to_numpy=True)
+    desc_t = torch.tensor(desc_emb, dtype=torch.float32, device=device).unsqueeze(0)
+    return desc_t
+
 def predict_policy_answer(
     description: str,
     policy_question: str,

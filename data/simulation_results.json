@@ -1,0 +1,1306 @@
+{
+  "policy_text": "The government will implement comprehensive immigration enforcement policies, including increased workplace raids, border security measures, and expedited deportations for undocumented immigrants. This policy will eliminate sanctuary city protections and require local law enforcement to cooperate with federal immigration authorities. Additionally, the policy restricts access to public services such as healthcare, housing assistance, and education for undocumented individuals and their families. Legal immigration pathways will be narrowed, with stricter requirements for work visas and family reunification. The policy aims to reduce illegal immigration but will significantly impact immigrant communities, mixed-status families, and industries that rely on immigrant labor such as agriculture, construction, and service sectors.",
+  "initial_damage": [
+    0.5953832864761353,
+    0.607925295829773,
+    0.5924596786499023,
+    0.5990849733352661,
+    0.6074202060699463,
+    0.6035149097442627,
+    0.6038985848426819,
+    0.6057360768318176,
+    0.6111222505569458,
+    0.6040977239608765,
+    0.6020997762680054,
+    0.6101019978523254,
+    0.6068616509437561,
+    0.5961803197860718,
+    0.604576587677002,
+    0.611211895942688,
+    0.5976868867874146,
+    0.6097788214683533,
+    0.6090326309204102,
+    0.600396454334259,
+    0.6096824407577515,
+    0.6156056523323059,
+    0.5995073318481445,
+    0.6097913384437561,
+    0.6064361333847046,
+    0.5975313186645508,
+    0.6133663654327393,
+    0.621801495552063,
+    0.6069994568824768,
+    0.610636830329895,
+    0.5934252738952637,
+    0.625429630279541,
+    0.600775957107544,
+    0.6187114119529724,
+    0.6025333404541016,
+    0.6026293635368347,
+    0.5943964123725891,
+    0.604506254196167,
+    0.6122168302536011,
+    0.6034294962882996,
+    0.6045820116996765,
+    0.6078695058822632,
+    0.5991957783699036,
+    0.5912778377532959,
+    0.5970060229301453,
+    0.6055457592010498,
+    0.6049351096153259,
+    0.6031661033630371,
+    0.6145066022872925,
+    0.5979915261268616,
+    0.6025253534317017,
+    0.6024929285049438,
+    0.5986011624336243,
+    0.6115512251853943,
+    0.6097996830940247,
+    0.6118216514587402,
+    0.6000220775604248,
+    0.591262698173523,
+    0.5998468399047852,
+    0.6003782749176025,
+    0.6037083864212036,
+    0.6112179756164551,
+    0.5909905433654785,
+    0.6030145883560181,
+    0.6067667603492737,
+    0.6004329323768616,
+    0.605208694934845,
+    0.6016335487365723,
+    0.6103470325469971,
+    0.6035078167915344,
+    0.6031374931335449,
+    0.6159696578979492,
+    0.5978454351425171,
+    0.6068443655967712,
+    0.6041169166564941,
+    0.5939410924911499,
+    0.6089205145835876,
+    0.6159340739250183,
+    0.6081012487411499,
+    0.5976632237434387,
+    0.6161819696426392,
+    0.6000916957855225,
+    0.6030377149581909,
+    0.608089029788971,
+    0.6060610413551331,
+    0.5990420579910278,
+    0.6073027849197388,
+    0.5970159769058228,
+    0.6156435012817383,
+    0.6039798855781555,
+    0.6096907258033752,
+    0.6065886616706848,
+    0.5919653177261353,
+    0.6133082509040833,
+    0.6021190881729126,
+    0.5994026064872742,
+    0.6036427617073059,
+    0.6066807508468628,
+    0.6017349362373352,
+    0.6138137578964233
+  ],
+  "cascade_history": [
+    [
+      0.5953832864761353,
+      0.607925295829773,
+      0.5924596786499023,
+      0.5990849733352661,
+      0.6074202060699463,
+      0.6035149097442627,
+      0.6038985848426819,
+      0.6057360768318176,
+      0.6111222505569458,
+      0.6040977239608765,
+      0.6020997762680054,
+      0.6101019978523254,
+      0.6068616509437561,
+      0.5961803197860718,
+      0.604576587677002,
+      0.611211895942688,
+      0.5976868867874146,
+      0.6097788214683533,
+      0.6090326309204102,
+      0.600396454334259,
+      0.6096824407577515,
+      0.6156056523323059,
+      0.5995073318481445,
+      0.6097913384437561,
+      0.6064361333847046,
+      0.5975313186645508,
+      0.6133663654327393,
+      0.621801495552063,
+      0.6069994568824768,
+      0.610636830329895,
+      0.5934252738952637,
+      0.625429630279541,
+      0.600775957107544,
+      0.6187114119529724,
+      0.6025333404541016,
+      0.6026293635368347,
+      0.5943964123725891,
+      0.604506254196167,
+      0.6122168302536011,
+      0.6034294962882996,
+      0.6045820116996765,
+      0.6078695058822632,
+      0.5991957783699036,
+      0.5912778377532959,
+      0.5970060229301453,
+      0.6055457592010498,
+      0.6049351096153259,
+      0.6031661033630371,
+      0.6145066022872925,
+      0.5979915261268616,
+      0.6025253534317017,
+      0.6024929285049438,
+      0.5986011624336243,
+      0.6115512251853943,
+      0.6097996830940247,
+      0.6118216514587402,
+      0.6000220775604248,
+      0.591262698173523,
+      0.5998468399047852,
+      0.6003782749176025,
+      0.6037083864212036,
+      0.6112179756164551,
+      0.5909905433654785,
+      0.6030145883560181,
+      0.6067667603492737,
+      0.6004329323768616,
+      0.605208694934845,
+      0.6016335487365723,
+      0.6103470325469971,
+      0.6035078167915344,
+      0.6031374931335449,
+      0.6159696578979492,
+      0.5978454351425171,
+      0.6068443655967712,
+      0.6041169166564941,
+      0.5939410924911499,
+      0.6089205145835876,
+      0.6159340739250183,
+      0.6081012487411499,
+      0.5976632237434387,
+      0.6161819696426392,
+      0.6000916957855225,
+      0.6030377149581909,
+      0.608089029788971,
+      0.6060610413551331,
+      0.5990420579910278,
+      0.6073027849197388,
+      0.5970159769058228,
+      0.6156435012817383,
+      0.6039798855781555,
+      0.6096907258033752,
+      0.6065886616706848,
+      0.5919653177261353,
+      0.6133082509040833,
+      0.6021190881729126,
+      0.5994026064872742,
+      0.6036427617073059,
+      0.6066807508468628,
+      0.6017349362373352,
+      0.6138137578964233
+    ],
+    [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  ],
+  "top_affected": [
+    [
+      0,
+      1.0
+    ],
+    [
+      1,
+      1.0
+    ],
+    [
+      2,
+      1.0
+    ],
+    [
+      3,
+      1.0
+    ],
+    [
+      4,
+      1.0
+    ],
+    [
+      5,
+      1.0
+    ],
+    [
+      6,
+      1.0
+    ],
+    [
+      7,
+      1.0
+    ],
+    [
+      8,
+      1.0
+    ],
+    [
+      9,
+      1.0
+    ],
+    [
+      10,
+      1.0
+    ],
+    [
+      11,
+      1.0
+    ],
+    [
+      12,
+      1.0
+    ],
+    [
+      13,
+      1.0
+    ],
+    [
+      14,
+      1.0
+    ],
+    [
+      15,
+      1.0
+    ],
+    [
+      16,
+      1.0
+    ],
+    [
+      17,
+      1.0
+    ],
+    [
+      18,
+      1.0
+    ],
+    [
+      19,
+      1.0
+    ]
+  ],
+  "all_affected": [
+    {
+      "archetype_id": 0,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 33.72943890746047
+    },
+    {
+      "archetype_id": 1,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 32.438954595824335
+    },
+    {
+      "archetype_id": 2,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 31.00660627942346
+    },
+    {
+      "archetype_id": 3,
+      "effect": 1.0,
+      "vulnerability": 0.43,
+      "influence": 0.5,
+      "incoming_weight": 32.24401270216474
+    },
+    {
+      "archetype_id": 4,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.67581495340586
+    },
+    {
+      "archetype_id": 5,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 33.57140462790997
+    },
+    {
+      "archetype_id": 6,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 31.527178490502425
+    },
+    {
+      "archetype_id": 7,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 32.98946771109239
+    },
+    {
+      "archetype_id": 8,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 33.202660092894824
+    },
+    {
+      "archetype_id": 9,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 31.782628823542836
+    },
+    {
+      "archetype_id": 10,
+      "effect": 1.0,
+      "vulnerability": 0.75,
+      "influence": 0.5,
+      "incoming_weight": 28.5437375401116
+    },
+    {
+      "archetype_id": 11,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 31.121887669578857
+    },
+    {
+      "archetype_id": 12,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 31.503074461107904
+    },
+    {
+      "archetype_id": 13,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 32.47855683668848
+    },
+    {
+      "archetype_id": 14,
+      "effect": 1.0,
+      "vulnerability": 0.4800000000000001,
+      "influence": 0.5,
+      "incoming_weight": 33.93619671092612
+    },
+    {
+      "archetype_id": 15,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 30.523007403237976
+    },
+    {
+      "archetype_id": 16,
+      "effect": 1.0,
+      "vulnerability": 0.43,
+      "influence": 0.5,
+      "incoming_weight": 32.78438841087422
+    },
+    {
+      "archetype_id": 17,
+      "effect": 1.0,
+      "vulnerability": 0.65,
+      "influence": 0.5,
+      "incoming_weight": 33.7929367987051
+    },
+    {
+      "archetype_id": 18,
+      "effect": 1.0,
+      "vulnerability": 0.55,
+      "influence": 0.5,
+      "incoming_weight": 32.67581495340586
+    },
+    {
+      "archetype_id": 19,
+      "effect": 1.0,
+      "vulnerability": 0.43000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 31.527178490502425
+    },
+    {
+      "archetype_id": 20,
+      "effect": 1.0,
+      "vulnerability": 0.64,
+      "influence": 0.5,
+      "incoming_weight": 33.23976538601043
+    },
+    {
+      "archetype_id": 21,
+      "effect": 1.0,
+      "vulnerability": 0.86,
+      "influence": 0.5,
+      "incoming_weight": 30.407838961488757
+    },
+    {
+      "archetype_id": 22,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 31.3880365647443
+    },
+    {
+      "archetype_id": 23,
+      "effect": 1.0,
+      "vulnerability": 0.48,
+      "influence": 0.5,
+      "incoming_weight": 33.92483359468936
+    },
+    {
+      "archetype_id": 24,
+      "effect": 1.0,
+      "vulnerability": 0.5700000000000001,
+      "influence": 0.5,
+      "incoming_weight": 32.04312739561002
+    },
+    {
+      "archetype_id": 25,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 32.49596396342841
+    },
+    {
+      "archetype_id": 26,
+      "effect": 1.0,
+      "vulnerability": 0.5,
+      "influence": 0.5,
+      "incoming_weight": 31.70598473488985
+    },
+    {
+      "archetype_id": 27,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 28.381074382447004
+    },
+    {
+      "archetype_id": 28,
+      "effect": 1.0,
+      "vulnerability": 0.4800000000000001,
+      "influence": 0.5,
+      "incoming_weight": 33.04220895984924
+    },
+    {
+      "archetype_id": 29,
+      "effect": 1.0,
+      "vulnerability": 0.71,
+      "influence": 0.5,
+      "incoming_weight": 29.653376649868584
+    },
+    {
+      "archetype_id": 30,
+      "effect": 1.0,
+      "vulnerability": 0.52,
+      "influence": 0.5,
+      "incoming_weight": 30.411513245232666
+    },
+    {
+      "archetype_id": 31,
+      "effect": 1.0,
+      "vulnerability": 0.5800000000000001,
+      "influence": 0.5,
+      "incoming_weight": 31.157915565078902
+    },
+    {
+      "archetype_id": 32,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.921442873541075
+    },
+    {
+      "archetype_id": 33,
+      "effect": 1.0,
+      "vulnerability": 0.6,
+      "influence": 0.5,
+      "incoming_weight": 31.705984734912054
+    },
+    {
+      "archetype_id": 34,
+      "effect": 1.0,
+      "vulnerability": 0.6,
+      "influence": 0.5,
+      "incoming_weight": 30.194018575737484
+    },
+    {
+      "archetype_id": 35,
+      "effect": 1.0,
+      "vulnerability": 0.65,
+      "influence": 0.5,
+      "incoming_weight": 30.787828144194577
+    },
+    {
+      "archetype_id": 36,
+      "effect": 1.0,
+      "vulnerability": 0.44000000000000006,
+      "influence": 0.5,
+      "incoming_weight": 32.85764607964937
+    },
+    {
+      "archetype_id": 37,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.39400611156778
+    },
+    {
+      "archetype_id": 38,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 32.04312739568773
+    },
+    {
+      "archetype_id": 39,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 33.01235034141615
+    },
+    {
+      "archetype_id": 40,
+      "effect": 1.0,
+      "vulnerability": 0.64,
+      "influence": 0.5,
+      "incoming_weight": 32.720383694647595
+    },
+    {
+      "archetype_id": 41,
+      "effect": 1.0,
+      "vulnerability": 0.8,
+      "influence": 0.5,
+      "incoming_weight": 33.98919253006997
+    },
+    {
+      "archetype_id": 42,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 33.62411944899568
+    },
+    {
+      "archetype_id": 43,
+      "effect": 1.0,
+      "vulnerability": 0.43000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 32.070755995551046
+    },
+    {
+      "archetype_id": 44,
+      "effect": 1.0,
+      "vulnerability": 0.4800000000000001,
+      "influence": 0.5,
+      "incoming_weight": 30.818796557128426
+    },
+    {
+      "archetype_id": 45,
+      "effect": 1.0,
+      "vulnerability": 0.38,
+      "influence": 0.5,
+      "incoming_weight": 32.72038993343486
+    },
+    {
+      "archetype_id": 46,
+      "effect": 1.0,
+      "vulnerability": 0.5599999999999999,
+      "influence": 0.5,
+      "incoming_weight": 33.57503395834614
+    },
+    {
+      "archetype_id": 47,
+      "effect": 1.0,
+      "vulnerability": 0.43,
+      "influence": 0.5,
+      "incoming_weight": 33.02356153038215
+    },
+    {
+      "archetype_id": 48,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 31.06136034152964
+    },
+    {
+      "archetype_id": 49,
+      "effect": 1.0,
+      "vulnerability": 0.6,
+      "influence": 0.5,
+      "incoming_weight": 33.06700800567705
+    },
+    {
+      "archetype_id": 50,
+      "effect": 1.0,
+      "vulnerability": 0.5,
+      "influence": 0.5,
+      "incoming_weight": 32.910616927568135
+    },
+    {
+      "archetype_id": 51,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.92140786051526
+    },
+    {
+      "archetype_id": 52,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 32.720740470711846
+    },
+    {
+      "archetype_id": 53,
+      "effect": 1.0,
+      "vulnerability": 0.71,
+      "influence": 0.5,
+      "incoming_weight": 32.196416807750445
+    },
+    {
+      "archetype_id": 54,
+      "effect": 1.0,
+      "vulnerability": 0.45,
+      "influence": 0.5,
+      "incoming_weight": 32.452747852361185
+    },
+    {
+      "archetype_id": 55,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 32.87481335827015
+    },
+    {
+      "archetype_id": 56,
+      "effect": 1.0,
+      "vulnerability": 0.71,
+      "influence": 0.5,
+      "incoming_weight": 33.72942791838416
+    },
+    {
+      "archetype_id": 57,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 28.066619670823897
+    },
+    {
+      "archetype_id": 58,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 32.78428952399775
+    },
+    {
+      "archetype_id": 59,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 31.17409475274618
+    },
+    {
+      "archetype_id": 60,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 32.998999430983474
+    },
+    {
+      "archetype_id": 61,
+      "effect": 1.0,
+      "vulnerability": 0.44000000000000006,
+      "influence": 0.5,
+      "incoming_weight": 31.715587784900524
+    },
+    {
+      "archetype_id": 62,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 30.842593620714627
+    },
+    {
+      "archetype_id": 63,
+      "effect": 1.0,
+      "vulnerability": 0.39,
+      "influence": 0.5,
+      "incoming_weight": 33.75237833982507
+    },
+    {
+      "archetype_id": 64,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 34.25432385441892
+    },
+    {
+      "archetype_id": 65,
+      "effect": 1.0,
+      "vulnerability": 0.61,
+      "influence": 0.5,
+      "incoming_weight": 32.25201893045614
+    },
+    {
+      "archetype_id": 66,
+      "effect": 1.0,
+      "vulnerability": 0.45,
+      "influence": 0.5,
+      "incoming_weight": 32.33393567533183
+    },
+    {
+      "archetype_id": 67,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 30.83791310780407
+    },
+    {
+      "archetype_id": 68,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 33.116590185649585
+    },
+    {
+      "archetype_id": 69,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 32.78438841087422
+    },
+    {
+      "archetype_id": 70,
+      "effect": 1.0,
+      "vulnerability": 0.65,
+      "influence": 0.5,
+      "incoming_weight": 29.40605783467607
+    },
+    {
+      "archetype_id": 71,
+      "effect": 1.0,
+      "vulnerability": 0.71,
+      "influence": 0.5,
+      "incoming_weight": 32.393994439559975
+    },
+    {
+      "archetype_id": 72,
+      "effect": 1.0,
+      "vulnerability": 0.5,
+      "influence": 0.5,
+      "incoming_weight": 31.544784411878645
+    },
+    {
+      "archetype_id": 73,
+      "effect": 1.0,
+      "vulnerability": 0.71,
+      "influence": 0.5,
+      "incoming_weight": 33.703986159795555
+    },
+    {
+      "archetype_id": 74,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 33.11380162595534
+    },
+    {
+      "archetype_id": 75,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 30.41151324521046
+    },
+    {
+      "archetype_id": 76,
+      "effect": 1.0,
+      "vulnerability": 0.65,
+      "influence": 0.5,
+      "incoming_weight": 32.240255659787564
+    },
+    {
+      "archetype_id": 77,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 35.14488631838631
+    },
+    {
+      "archetype_id": 78,
+      "effect": 1.0,
+      "vulnerability": 0.6900000000000001,
+      "influence": 0.5,
+      "incoming_weight": 36.28732370269491
+    },
+    {
+      "archetype_id": 79,
+      "effect": 1.0,
+      "vulnerability": 0.71,
+      "influence": 0.5,
+      "incoming_weight": 31.7750025918856
+    },
+    {
+      "archetype_id": 80,
+      "effect": 1.0,
+      "vulnerability": 0.5,
+      "influence": 0.5,
+      "incoming_weight": 32.04312739568773
+    },
+    {
+      "archetype_id": 81,
+      "effect": 1.0,
+      "vulnerability": 0.72,
+      "influence": 0.5,
+      "incoming_weight": 32.33393567533183
+    },
+    {
+      "archetype_id": 82,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 29.987496809428308
+    },
+    {
+      "archetype_id": 83,
+      "effect": 1.0,
+      "vulnerability": 0.5599999999999999,
+      "influence": 0.5,
+      "incoming_weight": 31.65444588733381
+    },
+    {
+      "archetype_id": 84,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 27.24880383749763
+    },
+    {
+      "archetype_id": 85,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.33388163383833
+    },
+    {
+      "archetype_id": 86,
+      "effect": 1.0,
+      "vulnerability": 0.5,
+      "influence": 0.5,
+      "incoming_weight": 33.62411944899568
+    },
+    {
+      "archetype_id": 87,
+      "effect": 1.0,
+      "vulnerability": 0.43,
+      "influence": 0.5,
+      "incoming_weight": 33.72942791847298
+    },
+    {
+      "archetype_id": 88,
+      "effect": 1.0,
+      "vulnerability": 0.7799999999999999,
+      "influence": 0.5,
+      "incoming_weight": 34.48004320010971
+    },
+    {
+      "archetype_id": 89,
+      "effect": 1.0,
+      "vulnerability": 0.64,
+      "influence": 0.5,
+      "incoming_weight": 29.840464658508107
+    },
+    {
+      "archetype_id": 90,
+      "effect": 1.0,
+      "vulnerability": 0.6699999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.221887777739006
+    },
+    {
+      "archetype_id": 91,
+      "effect": 1.0,
+      "vulnerability": 0.5599999999999999,
+      "influence": 0.5,
+      "incoming_weight": 34.22787721731661
+    },
+    {
+      "archetype_id": 92,
+      "effect": 1.0,
+      "vulnerability": 0.64,
+      "influence": 0.5,
+      "incoming_weight": 31.699171720415084
+    },
+    {
+      "archetype_id": 93,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 32.49985083612986
+    },
+    {
+      "archetype_id": 94,
+      "effect": 1.0,
+      "vulnerability": 0.54,
+      "influence": 0.5,
+      "incoming_weight": 31.496090059672962
+    },
+    {
+      "archetype_id": 95,
+      "effect": 1.0,
+      "vulnerability": 0.49000000000000005,
+      "influence": 0.5,
+      "incoming_weight": 32.449906112317926
+    },
+    {
+      "archetype_id": 96,
+      "effect": 1.0,
+      "vulnerability": 0.6,
+      "influence": 0.5,
+      "incoming_weight": 29.653376649357885
+    },
+    {
+      "archetype_id": 97,
+      "effect": 1.0,
+      "vulnerability": 0.61,
+      "influence": 0.5,
+      "incoming_weight": 31.322818060802916
+    },
+    {
+      "archetype_id": 98,
+      "effect": 1.0,
+      "vulnerability": 0.7799999999999999,
+      "influence": 0.5,
+      "incoming_weight": 32.92144287435154
+    },
+    {
+      "archetype_id": 99,
+      "effect": 1.0,
+      "vulnerability": 0.86,
+      "influence": 0.5,
+      "incoming_weight": 34.66802676078175
+    }
+  ],
+  "parameters": {
+    "impact_threshold": 0.3,
+    "damage_scale": 1.0,
+    "method": "similarity",
+    "cascade_steps": 3,
+    "accumulation": "replace"
+  }
+}

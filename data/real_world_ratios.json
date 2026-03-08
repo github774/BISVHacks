@@ -1,0 +1,1022 @@
+{
+  "metadata": {
+    "title": "Real-World Population Ratios for Archetype Variables",
+    "description": "Statistical distributions based on official U.S. government data sources",
+    "sources": [
+      "U.S. Census Bureau - Current Population Survey (CPS) 2023-2024",
+      "Bureau of Labor Statistics (BLS) - Employment Situation 2024",
+      "Federal Reserve - Distributional Financial Accounts 2024",
+      "National Center for Education Statistics (NCES) 2022",
+      "Centers for Medicare & Medicaid Services",
+      "American Community Survey (ACS) 2024"
+    ],
+    "last_updated": "2026-03-08",
+    "notes": "Ratios represent U.S. population distributions. Some values are rounded to sum to 100%."
+  },
+  "variables": {
+    "1": {
+      "name": "Income level",
+      "values": {
+        "very low": 0.20,
+        "low": 0.20,
+        "middle": 0.40,
+        "high": 0.15,
+        "very high": 0.05
+      },
+      "source": "Census Bureau Income Report 2023 - quintile distribution approximation",
+      "notes": "Bottom 40% = very low + low, middle 40%, top 20% = high + very high"
+    },
+    "2": {
+      "name": "Wealth level",
+      "values": {
+        "none": 0.11,
+        "limited": 0.39,
+        "moderate": 0.38,
+        "high": 0.12
+      },
+      "source": "Federal Reserve DFA Q3 2025 - wealth distribution by percentile",
+      "notes": "Bottom 50% (none+limited), next 40% (moderate), top 10% (high)"
+    },
+    "3": {
+      "name": "Education level",
+      "values": {
+        "none": 0.05,
+        "high school": 0.36,
+        "college": 0.40,
+        "graduate": 0.19
+      },
+      "source": "NCES Educational Attainment 2022, ages 25+",
+      "notes": "High school = HS diploma only, college = associate's or bachelor's, graduate = master's+"
+    },
+    "4": {
+      "name": "Occupation sector",
+      "values": {
+        "service": 0.35,
+        "manual": 0.20,
+        "professional": 0.30,
+        "management": 0.15
+      },
+      "source": "BLS Occupational Employment Statistics 2024",
+      "notes": "Service = service occupations, manual = production/construction, professional = technical/professional, management = management/executive"
+    },
+    "5": {
+      "name": "Employment stability",
+      "values": {
+        "unstable": 0.25,
+        "contract": 0.20,
+        "stable": 0.55
+      },
+      "source": "BLS contingent worker supplement and job tenure data",
+      "notes": "Stable = traditional long-term employment, contract = temporary/gig, unstable = frequent job changes"
+    },
+    "6": {
+      "name": "Employment type",
+      "values": {
+        "full-time": 0.61,
+        "part-time": 0.18,
+        "gig": 0.07,
+        "unemployed": 0.14
+      },
+      "source": "BLS CPS Employment Status Table A-1, March 2026",
+      "notes": "Includes civilian population 16+, gig estimated from supplemental surveys"
+    },
+    "7": {
+      "name": "Industry",
+      "values": {
+        "agriculture": 0.02,
+        "manufacturing": 0.15,
+        "retail": 0.23,
+        "tech": 0.60
+      },
+      "source": "BLS Employment by Industry 2024",
+      "notes": "Tech includes professional/business services, education, health, tech sectors"
+    },
+    "8": {
+      "name": "Job seniority",
+      "values": {
+        "entry-level": 0.35,
+        "mid-career": 0.45,
+        "senior": 0.20
+      },
+      "source": "BLS tenure and age distribution data",
+      "notes": "Approximated from median tenure and age-occupation distributions"
+    },
+    "9": {
+      "name": "Union membership",
+      "values": {
+        "none": 0.90,
+        "member": 0.09,
+        "leadership": 0.01
+      },
+      "source": "BLS Union Membership 2024 - 10.0% unionization rate",
+      "notes": "90% non-union, 9% members, 1% leadership/stewards"
+    },
+    "10": {
+      "name": "Career mobility",
+      "values": {
+        "low": 0.30,
+        "medium": 0.50,
+        "high": 0.20
+      },
+      "source": "Census intergenerational mobility studies",
+      "notes": "Estimated from economic mobility research"
+    },
+    "11": {
+      "name": "Age group",
+      "values": {
+        "child": 0.22,
+        "youth": 0.07,
+        "young adult": 0.22,
+        "mid-career": 0.25,
+        "senior": 0.24
+      },
+      "source": "Census Population Estimates 2024",
+      "notes": "child <15, youth 15-19, young adult 20-34, mid-career 35-54, senior 55+"
+    },
+    "12": {
+      "name": "Gender identity",
+      "values": {
+        "male": 0.495,
+        "female": 0.500,
+        "nonbinary": 0.005
+      },
+      "source": "Census population by sex 2024, nonbinary from surveys",
+      "notes": "Nonbinary estimate from Williams Institute and Pew Research"
+    },
+    "13": {
+      "name": "Sexual orientation",
+      "values": {
+        "heterosexual": 0.93,
+        "LGBTQ": 0.07
+      },
+      "source": "Gallup Poll 2024 - 7.2% LGBTQ identification",
+      "notes": "LGBTQ includes all non-heterosexual orientations"
+    },
+    "14": {
+      "name": "Race/ethnicity",
+      "values": {
+        "majority": 0.60,
+        "minority": 0.40
+      },
+      "source": "Census 2024 - White non-Hispanic vs. all others",
+      "notes": "Majority = White non-Hispanic (~60%), minority = all other groups"
+    },
+    "15": {
+      "name": "Immigration status",
+      "values": {
+        "citizen": 0.87,
+        "permanent resident": 0.08,
+        "visa": 0.02,
+        "undocumented": 0.03
+      },
+      "source": "Census ACS foreign-born population + DHS estimates",
+      "notes": "13% foreign-born, subdivided by legal status"
+    },
+    "16": {
+      "name": "Country of birth",
+      "values": {
+        "domestic": 0.87,
+        "foreign-born": 0.13
+      },
+      "source": "Census ACS 2024 - 13.9% foreign-born",
+      "notes": "Foreign-born includes all non-U.S. birthplaces"
+    },
+    "17": {
+      "name": "Years since immigration",
+      "values": {
+        "<5": 0.25,
+        "5–15": 0.30,
+        "15+": 0.45
+      },
+      "source": "Census ACS foreign-born entry year distribution",
+      "notes": "Distribution among foreign-born population only"
+    },
+    "18": {
+      "name": "Language proficiency",
+      "values": {
+        "fluent": 0.92,
+        "intermediate": 0.05,
+        "limited": 0.03
+      },
+      "source": "Census ACS language spoken at home/English proficiency",
+      "notes": "Fluent = English only or very well, intermediate = well, limited = not well/not at all"
+    },
+    "19": {
+      "name": "Primary language",
+      "values": {
+        "English": 0.78,
+        "Spanish": 0.13,
+        "Mandarin": 0.02,
+        "other": 0.07
+      },
+      "source": "Census ACS language spoken at home 2024",
+      "notes": "English only at home = 78%, Spanish 13%, Asian languages ~9%"
+    },
+    "20": {
+      "name": "Cultural integration",
+      "values": {
+        "low": 0.10,
+        "medium": 0.25,
+        "high": 0.65
+      },
+      "source": "Derived from immigration duration and language proficiency",
+      "notes": "High = native-born + long-term immigrants, medium = mid-term, low = recent arrivals"
+    },
+    "21": {
+      "name": "Marital status",
+      "values": {
+        "single": 0.35,
+        "married": 0.48,
+        "divorced": 0.11,
+        "widowed": 0.06
+      },
+      "source": "Census CPS Annual Social and Economic Supplement 2024",
+      "notes": "Population 15+ years old"
+    },
+    "22": {
+      "name": "Household size",
+      "values": {
+        "1": 0.29,
+        "2–3": 0.47,
+        "4–5": 0.19,
+        "6+": 0.05
+      },
+      "source": "Census household size distribution 2024",
+      "notes": "Average household size 2.5 persons"
+    },
+    "23": {
+      "name": "Number of children",
+      "values": {
+        "none": 0.65,
+        "1–2": 0.28,
+        "3+": 0.07
+      },
+      "source": "Census fertility and household composition 2024",
+      "notes": "Among all households, not just families with children"
+    },
+    "24": {
+      "name": "Single parent status",
+      "values": {
+        "yes": 0.23,
+        "no": 0.77
+      },
+      "source": "Census families with children statistics",
+      "notes": "Among households with children under 18"
+    },
+    "25": {
+      "name": "Elder dependents",
+      "values": {
+        "none": 0.85,
+        "one": 0.12,
+        "multiple": 0.03
+      },
+      "source": "National Alliance for Caregiving estimates",
+      "notes": "Households providing elder care"
+    },
+    "26": {
+      "name": "Household income diversity",
+      "values": {
+        "single earner": 0.45,
+        "dual earner": 0.55
+      },
+      "source": "BLS CPS - married couple families labor force participation",
+      "notes": "Among couple households, ~55% have both working"
+    },
+    "27": {
+      "name": "Household stability",
+      "values": {
+        "stable": 0.75,
+        "unstable": 0.25
+      },
+      "source": "Census mobility rates and housing tenure",
+      "notes": "Stable = same residence >1 year, unstable = frequent moves/housing insecurity"
+    },
+    "28": {
+      "name": "Childcare access",
+      "values": {
+        "none": 0.20,
+        "limited": 0.35,
+        "reliable": 0.45
+      },
+      "source": "HHS childcare and development statistics",
+      "notes": "Among families with young children"
+    },
+    "29": {
+      "name": "Family wealth support",
+      "values": {
+        "none": 0.55,
+        "moderate": 0.30,
+        "strong": 0.15
+      },
+      "source": "Federal Reserve Survey of Consumer Finances - intergenerational transfers",
+      "notes": "Estimated from inheritance and family financial support patterns"
+    },
+    "30": {
+      "name": "Intergenerational mobility",
+      "values": {
+        "downward": 0.25,
+        "stable": 0.45,
+        "upward": 0.30
+      },
+      "source": "Census economic mobility studies, Chetty et al.",
+      "notes": "Income mobility relative to parents"
+    },
+    "31": {
+      "name": "Physical health",
+      "values": {
+        "poor": 0.12,
+        "moderate": 0.28,
+        "good": 0.60
+      },
+      "source": "CDC BRFSS self-reported health status 2023",
+      "notes": "Good = excellent/very good/good, moderate = fair, poor = poor"
+    },
+    "32": {
+      "name": "Mental health",
+      "values": {
+        "poor": 0.20,
+        "moderate": 0.30,
+        "good": 0.50
+      },
+      "source": "SAMHSA NSDUH mental health estimates 2023",
+      "notes": "Poor = diagnosed conditions/frequent poor mental health days"
+    },
+    "33": {
+      "name": "Chronic illness",
+      "values": {
+        "none": 0.60,
+        "mild": 0.30,
+        "severe": 0.10
+      },
+      "source": "CDC chronic disease prevalence data",
+      "notes": "~40% have at least one chronic condition"
+    },
+    "34": {
+      "name": "Disability status",
+      "values": {
+        "none": 0.87,
+        "physical": 0.09,
+        "cognitive": 0.04
+      },
+      "source": "Census ACS disability status 2024 - 13% with disability",
+      "notes": "Physical = mobility/self-care, cognitive = cognitive/mental"
+    },
+    "35": {
+      "name": "Health insurance",
+      "values": {
+        "none": 0.08,
+        "public": 0.36,
+        "private": 0.56
+      },
+      "source": "Census Health Insurance Coverage 2023 - 92% insured",
+      "notes": "Public = Medicare/Medicaid/military, private = employer/direct"
+    },
+    "36": {
+      "name": "Healthcare access",
+      "values": {
+        "limited": 0.20,
+        "moderate": 0.35,
+        "strong": 0.45
+      },
+      "source": "HRSA health professional shortage area data + access surveys",
+      "notes": "Limited = shortage areas or uninsured, strong = good insurance + nearby facilities"
+    },
+    "37": {
+      "name": "Healthcare affordability",
+      "values": {
+        "unaffordable": 0.35,
+        "manageable": 0.65
+      },
+      "source": "Kaiser Family Foundation affordability surveys 2024",
+      "notes": "Unaffordable = high out-of-pocket costs or medical debt"
+    },
+    "38": {
+      "name": "Substance abuse risk",
+      "values": {
+        "low": 0.70,
+        "moderate": 0.20,
+        "high": 0.10
+      },
+      "source": "SAMHSA NSDUH substance use disorder estimates",
+      "notes": "High = substance use disorder, moderate = misuse, low = none/minimal"
+    },
+    "39": {
+      "name": "Life expectancy risk",
+      "values": {
+        "low": 0.70,
+        "medium": 0.20,
+        "high": 0.10
+      },
+      "source": "CDC mortality and life expectancy by demographics",
+      "notes": "Based on health conditions, behaviors, socioeconomic factors"
+    },
+    "40": {
+      "name": "Preventive care usage",
+      "values": {
+        "rare": 0.30,
+        "occasional": 0.35,
+        "regular": 0.35
+      },
+      "source": "CDC preventive service utilization statistics",
+      "notes": "Regular = annual checkups, screenings as recommended"
+    },
+    "41": {
+      "name": "Housing status",
+      "values": {
+        "owner": 0.66,
+        "renter": 0.33,
+        "homeless": 0.01
+      },
+      "source": "Census Housing Vacancy Survey Q4 2025 - 65.9% homeownership",
+      "notes": "Homeless = HUD point-in-time count ~0.2% of population"
+    },
+    "42": {
+      "name": "Housing stability",
+      "values": {
+        "stable": 0.78,
+        "unstable": 0.22
+      },
+      "source": "Census residential mobility + eviction lab data",
+      "notes": "Stable = no recent moves, no rent burden >50%, unstable = frequent moves/risk"
+    },
+    "43": {
+      "name": "Housing affordability",
+      "values": {
+        "affordable": 0.52,
+        "burdened": 0.48
+      },
+      "source": "HUD comprehensive housing affordability strategy - cost burden >30% income",
+      "notes": "Burdened = housing costs >30% of income"
+    },
+    "44": {
+      "name": "Neighborhood income level",
+      "values": {
+        "low": 0.30,
+        "mixed": 0.45,
+        "high": 0.25
+      },
+      "source": "Census tract-level median income distributions",
+      "notes": "Low = <80% area median, mixed = 80-120%, high = >120%"
+    },
+    "45": {
+      "name": "Neighborhood safety",
+      "values": {
+        "unsafe": 0.15,
+        "moderate": 0.50,
+        "safe": 0.35
+      },
+      "source": "FBI UCR crime statistics by area + victimization surveys",
+      "notes": "Based on crime rates and resident perceptions"
+    },
+    "46": {
+      "name": "Housing quality",
+      "values": {
+        "poor": 0.10,
+        "adequate": 0.55,
+        "high": 0.35
+      },
+      "source": "Census AHS housing quality indicators",
+      "notes": "Poor = inadequate plumbing/heating/structure, high = new/well-maintained"
+    },
+    "47": {
+      "name": "Exposure to pollution",
+      "values": {
+        "low": 0.40,
+        "medium": 0.45,
+        "high": 0.15
+      },
+      "source": "EPA environmental justice screening tool",
+      "notes": "Air quality index and proximity to pollution sources"
+    },
+    "48": {
+      "name": "Access to green space",
+      "values": {
+        "low": 0.25,
+        "medium": 0.45,
+        "high": 0.30
+      },
+      "source": "Trust for Public Land ParkScore + Census urbanization",
+      "notes": "Proximity to parks and recreational areas"
+    },
+    "49": {
+      "name": "Disaster risk exposure",
+      "values": {
+        "low": 0.50,
+        "moderate": 0.35,
+        "high": 0.15
+      },
+      "source": "FEMA National Risk Index",
+      "notes": "Flood, fire, hurricane, earthquake, tornado risk combined"
+    },
+    "50": {
+      "name": "Infrastructure quality",
+      "values": {
+        "poor": 0.20,
+        "moderate": 0.50,
+        "strong": 0.30
+      },
+      "source": "ASCE infrastructure report card + local assessments",
+      "notes": "Roads, bridges, utilities, public services quality"
+    },
+    "51": {
+      "name": "Geography type",
+      "values": {
+        "rural": 0.20,
+        "suburban": 0.52,
+        "urban": 0.28
+      },
+      "source": "Census urban/rural classification 2020",
+      "notes": "Urban = core cities, suburban = metro areas outside cores, rural = nonmetro"
+    },
+    "52": {
+      "name": "Population density",
+      "values": {
+        "low": 0.35,
+        "medium": 0.40,
+        "high": 0.25
+      },
+      "source": "Census population density by tract",
+      "notes": "Low <500/sq mi, medium 500-3000, high >3000"
+    },
+    "53": {
+      "name": "Region economic growth",
+      "values": {
+        "declining": 0.20,
+        "stable": 0.50,
+        "growing": 0.30
+      },
+      "source": "BEA regional economic accounts, employment trends",
+      "notes": "Based on GDP growth, employment, population trends"
+    },
+    "54": {
+      "name": "Transportation access",
+      "values": {
+        "limited": 0.25,
+        "moderate": 0.45,
+        "strong": 0.30
+      },
+      "source": "Census transportation statistics + ACS commute data",
+      "notes": "Vehicle ownership, transit availability, road infrastructure"
+    },
+    "55": {
+      "name": "Commute time",
+      "values": {
+        "short": 0.35,
+        "medium": 0.40,
+        "long": 0.25
+      },
+      "source": "Census ACS commute time to work",
+      "notes": "Short <20min, medium 20-40min, long > 40min"
+    },
+    "56": {
+      "name": "Access to public transit",
+      "values": {
+        "none": 0.45,
+        "limited": 0.30,
+        "extensive": 0.25
+      },
+      "source": "FTA transit service area coverage",
+      "notes": "None = no service, limited = bus only, extensive = rail/frequent service"
+    },
+    "57": {
+      "name": "Distance to employment centers",
+      "values": {
+        "near": 0.40,
+        "moderate": 0.40,
+        "far": 0.20
+      },
+      "source": "Census LODES work-residence data",
+      "notes": "Near <10mi, moderate 10-30mi, far >30mi"
+    },
+    "58": {
+      "name": "Internet access",
+      "values": {
+        "none": 0.08,
+        "slow": 0.17,
+        "high-speed": 0.75
+      },
+      "source": "NTIA Internet Use Survey Nov 2023 + FCC broadband data",
+      "notes": "None = no home internet, slow = dial-up/satellite/limited mobile, high-speed = cable/fiber"
+    },
+    "59": {
+      "name": "Local job availability",
+      "values": {
+        "low": 0.30,
+        "medium": 0.45,
+        "high": 0.25
+      },
+      "source": "BLS local area unemployment statistics",
+      "notes": "Based on unemployment rate and job openings ratio"
+    },
+    "60": {
+      "name": "Local cost of living",
+      "values": {
+        "low": 0.25,
+        "moderate": 0.50,
+        "high": 0.25
+      },
+      "source": "BEA regional price parities",
+      "notes": "Relative to national average costs"
+    },
+    "61": {
+      "name": "Access to quality schools",
+      "values": {
+        "low": 0.25,
+        "medium": 0.50,
+        "high": 0.25
+      },
+      "source": "NCES school performance and ED Department data",
+      "notes": "Based on test scores, graduation rates, resources"
+    },
+    "62": {
+      "name": "Access to higher education",
+      "values": {
+        "low": 0.20,
+        "medium": 0.50,
+        "high": 0.30
+      },
+      "source": "NCES IPEDS college proximity data",
+      "notes": "Nearby community colleges, 4-year institutions"
+    },
+    "63": {
+      "name": "Access to job training",
+      "values": {
+        "none": 0.30,
+        "limited": 0.45,
+        "strong": 0.25
+      },
+      "source": "DOL workforce development program availability",
+      "notes": "Vocational programs, apprenticeships, certificates"
+    },
+    "64": {
+      "name": "Legal representation access",
+      "values": {
+        "none": 0.40,
+        "limited": 0.40,
+        "reliable": 0.20
+      },
+      "source": "Legal Services Corporation justice gap reports",
+      "notes": "None = can't afford, limited = pro bono/legal aid, reliable = can hire"
+    },
+    "65": {
+      "name": "Access to social services",
+      "values": {
+        "limited": 0.25,
+        "moderate": 0.50,
+        "strong": 0.25
+      },
+      "source": "HHS facility locator + SNAP/TANF participation data",
+      "notes": "Food banks, housing assistance, health services availability"
+    },
+    "66": {
+      "name": "Banking access",
+      "values": {
+        "unbanked": 0.05,
+        "basic": 0.35,
+        "full": 0.60
+      },
+      "source": "FDIC National Survey of Unbanked and Underbanked Households 2023",
+      "notes": "Unbanked = no account, basic = checking only, full = checking+savings+credit"
+    },
+    "67": {
+      "name": "Credit access",
+      "values": {
+        "poor": 0.25,
+        "moderate": 0.40,
+        "strong": 0.35
+      },
+      "source": "CFPB credit bureau data and FICO score distributions",
+      "notes": "Poor = <580, moderate = 580-720, strong = >720"
+    },
+    "68": {
+      "name": "Political representation",
+      "values": {
+        "low": 0.30,
+        "moderate": 0.50,
+        "high": 0.20
+      },
+      "source": "Census voter registration and turnout, representation studies",
+      "notes": "Based on voting power, district competitiveness, engagement"
+    },
+    "69": {
+      "name": "Voting access",
+      "values": {
+        "limited": 0.20,
+        "moderate": 0.50,
+        "easy": 0.30
+      },
+      "source": "EAC Election Administration and Voting Survey",
+      "notes": "Based on registration ease, polling access, wait times"
+    },
+    "70": {
+      "name": "Government trust",
+      "values": {
+        "low": 0.40,
+        "medium": 0.40,
+        "high": 0.20
+      },
+      "source": "Pew Research Center trust in government surveys 2024",
+      "notes": "Historical trends show declining trust over decades"
+    },
+    "71": {
+      "name": "Social network size",
+      "values": {
+        "small": 0.30,
+        "medium": 0.50,
+        "large": 0.20
+      },
+      "source": "General Social Survey social network module",
+      "notes": "Number of close contacts and social connections"
+    },
+    "72": {
+      "name": "Community support",
+      "values": {
+        "weak": 0.30,
+        "moderate": 0.45,
+        "strong": 0.25
+      },
+      "source": "Social Capital Project data, community surveys",
+      "notes": "Neighborhood cohesion, mutual aid, social capital"
+    },
+    "73": {
+      "name": "Religious community participation",
+      "values": {
+        "none": 0.45,
+        "occasional": 0.30,
+        "active": 0.25
+      },
+      "source": "Pew Religious Landscape Study 2024",
+      "notes": "None = never attend, occasional = few times/year, active = weekly+"
+    },
+    "74": {
+      "name": "Civic participation",
+      "values": {
+        "none": 0.50,
+        "occasional": 0.35,
+        "frequent": 0.15
+      },
+      "source": "Census Current Population Survey civic engagement supplement",
+      "notes": "Town meetings, local organizations, advocacy"
+    },
+    "75": {
+      "name": "Volunteer engagement",
+      "values": {
+        "none": 0.65,
+        "occasional": 0.25,
+        "frequent": 0.10
+      },
+      "source": "BLS volunteer supplement 2023 - 23% volunteer rate",
+      "notes": "Frequent = regular volunteering, occasional = sporadic"
+    },
+    "76": {
+      "name": "Social isolation",
+      "values": {
+        "low": 0.50,
+        "moderate": 0.35,
+        "high": 0.15
+      },
+      "source": "National Academies Social Isolation report, health surveys",
+      "notes": "High = chronic loneliness, limited social contact"
+    },
+    "77": {
+      "name": "Informal economic support",
+      "values": {
+        "none": 0.55,
+        "moderate": 0.30,
+        "strong": 0.15
+      },
+      "source": "Federal Reserve Economic Well-Being survey - family assistance",
+      "notes": "Financial help from family/friends, shared resources"
+    },
+    "78": {
+      "name": "Mentorship access",
+      "values": {
+        "none": 0.50,
+        "limited": 0.35,
+        "strong": 0.15
+      },
+      "source": "Education and workforce development program participation",
+      "notes": "Career guidance, role models, professional development"
+    },
+    "79": {
+      "name": "Professional network",
+      "values": {
+        "weak": 0.40,
+        "moderate": 0.40,
+        "strong": 0.20
+      },
+      "source": "LinkedIn workforce reports, professional associations",
+      "notes": "Industry connections, job referral networks"
+    },
+    "80": {
+      "name": "Community leadership role",
+      "values": {
+        "none": 0.70,
+        "informal": 0.20,
+        "formal": 0.10
+      },
+      "source": "Census civic engagement data, nonprofit participation",
+      "notes": "Formal = elected/appointed, informal = organizer/activist"
+    },
+    "81": {
+      "name": "Job security",
+      "values": {
+        "low": 0.30,
+        "moderate": 0.45,
+        "high": 0.25
+      },
+      "source": "BLS job tenure and layoff statistics",
+      "notes": "Based on employment type, industry, tenure"
+    },
+    "82": {
+      "name": "Income volatility",
+      "values": {
+        "high": 0.35,
+        "moderate": 0.40,
+        "low": 0.25
+      },
+      "source": "Federal Reserve income volatility research (SHED)",
+      "notes": "High = gig/seasonal/commission, low = salary"
+    },
+    "83": {
+      "name": "Legal vulnerability",
+      "values": {
+        "low": 0.70,
+        "moderate": 0.20,
+        "high": 0.10
+      },
+      "source": "Immigration status, criminal justice, civil legal needs",
+      "notes": "High = undocumented/criminal record, low = citizen/clean record"
+    },
+    "84": {
+      "name": "Exposure to discrimination",
+      "values": {
+        "low": 0.65,
+        "medium": 0.25,
+        "high": 0.10
+      },
+      "source": "EEOC discrimination complaints, social surveys",
+      "notes": "Based on protected class membership, self-reported experiences"
+    },
+    "85": {
+      "name": "Exposure to policing",
+      "values": {
+        "low": 0.70,
+        "medium": 0.20,
+        "high": 0.10
+      },
+      "source": "BJS police contact surveys, arrest statistics",
+      "notes": "Stop rates, arrest rates, neighborhood policing intensity"
+    },
+    "86": {
+      "name": "Workplace power",
+      "values": {
+        "low": 0.50,
+        "moderate": 0.35,
+        "high": 0.15
+      },
+      "source": "Occupational authority, management levels, union presence",
+      "notes": "High = management/ownership, low = entry-level/gig"
+    },
+    "87": {
+      "name": "Workplace safety",
+      "values": {
+        "unsafe": 0.15,
+        "moderate": 0.45,
+        "safe": 0.40
+      },
+      "source": "OSHA injury rates by industry",
+      "notes": "Unsafe = high-injury industries, safe = office/low-risk"
+    },
+    "88": {
+      "name": "Automation risk",
+      "values": {
+        "low": 0.35,
+        "medium": 0.40,
+        "high": 0.25
+      },
+      "source": "McKinsey, Brookings automation vulnerability studies",
+      "notes": "High = routine manual/clerical, low = creative/management"
+    },
+    "89": {
+      "name": "Financial literacy",
+      "values": {
+        "low": 0.35,
+        "moderate": 0.40,
+        "high": 0.25
+      },
+      "source": "FINRA financial capability surveys",
+      "notes": "Understanding of credit, investing, budgeting"
+    },
+    "90": {
+      "name": "Financial resilience",
+      "values": {
+        "low": 0.40,
+        "medium": 0.35,
+        "high": 0.25
+      },
+      "source": "Federal Reserve SHED emergency savings + CFPB financial well-being",
+      "notes": "Low = can't cover $400 emergency, high = 3+ months expenses saved"
+    },
+    "91": {
+      "name": "Digital literacy",
+      "values": {
+        "low": 0.25,
+        "moderate": 0.45,
+        "high": 0.30
+      },
+      "source": "PIAAC digital skills assessment, Pew digital divides",
+      "notes": "Ability to use computers, internet, digital tools effectively"
+    },
+    "92": {
+      "name": "Access to computers",
+      "values": {
+        "none": 0.08,
+        "shared": 0.22,
+        "personal": 0.70
+      },
+      "source": "Census ACS computer and internet use supplement",
+      "notes": "None = no household computer, shared = family device, personal = own device"
+    },
+    "93": {
+      "name": "Smartphone access",
+      "values": {
+        "none": 0.04,
+        "basic": 0.16,
+        "advanced": 0.80
+      },
+      "source": "Pew Research smartphone ownership 2024 - 85% ownership",
+      "notes": "Advanced = smartphone, basic = feature phone, none = no mobile"
+    },
+    "94": {
+      "name": "Online information exposure",
+      "values": {
+        "limited": 0.20,
+        "moderate": 0.40,
+        "high": 0.40
+      },
+      "source": "Pew internet use surveys, NTIA digital nation",
+      "notes": "Daily internet use, information seeking behaviors"
+    },
+    "95": {
+      "name": "Media consumption diversity",
+      "values": {
+        "low": 0.30,
+        "moderate": 0.45,
+        "high": 0.25
+      },
+      "source": "Pew news consumption surveys, media fragmentation studies",
+      "notes": "Low = single source, high = varied sources and perspectives"
+    },
+    "96": {
+      "name": "Misinformation exposure",
+      "values": {
+        "low": 0.30,
+        "medium": 0.45,
+        "high": 0.25
+      },
+      "source": "Pew misinformation surveys, platform studies",
+      "notes": "Vulnerability to and sharing of false information"
+    },
+    "97": {
+      "name": "Remote work capability",
+      "values": {
+        "none": 0.60,
+        "partial": 0.20,
+        "full": 0.20
+      },
+      "source": "BLS telework supplement 2024, occupation telework potential",
+      "notes": "Full = job can be done entirely remote, partial = hybrid"
+    },
+    "98": {
+      "name": "Online professional presence",
+      "values": {
+        "none": 0.50,
+        "basic": 0.30,
+        "strong": 0.20
+      },
+      "source": "LinkedIn member data, professional networking surveys",
+      "notes": "Strong = active LinkedIn/portfolio, basic = minimal presence, none = no presence"
+    },
+    "99": {
+      "name": "Participation in digital economy",
+      "values": {
+        "none": 0.25,
+        "occasional": 0.40,
+        "frequent": 0.35
+      },
+      "source": "Census e-commerce participation, gig economy surveys",
+      "notes": "Online selling, gig platforms, digital services"
+    },
+    "100": {
+      "name": "AI/automation skill exposure",
+      "values": {
+        "low": 0.60,
+        "medium": 0.30,
+        "high": 0.10
+      },
+      "source": "Burning Glass labor market analytics, AI adoption surveys",
+      "notes": "High = AI tools user/developer, low = minimal exposure"
+    }
+  }
+}

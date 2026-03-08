@@ -20,8 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from archetype_definitions import ARCHETYPE_VARIABLES
-from policy_templates import (
+from src.archetype_definitions import ARCHETYPE_VARIABLES
+from src.policy_templates import (
     generate_answers_for_archetype,
     generate_questions_for_archetype,
 )
@@ -80,7 +80,7 @@ def main() -> None:
         arch_rng = random.Random(SEED + i)  # Reproducible per-archetype
 
         questions, metadata = generate_questions_for_archetype(i, arch_rng)
-        answers = generate_answers_for_archetype(archetype_dict, metadata, arch_rng)
+        answers = generate_answers_for_archetype(archetype_dict, metadata, arch_rng) #type: ignore
 
         results.append({
             "archetype_id": i,
