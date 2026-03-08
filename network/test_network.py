@@ -1,6 +1,6 @@
 """
-Test the marginalization network with an example of NUM_NODES archetypes.
-Uses the first NUM_NODES archetypes from archetypes.json / persona_vectors.json.
+Test the marginalization network with an example of NUM_NODES agents.
+Uses dynamically generated agents instead of loading from JSON.
 """
 
 from pathlib import Path
@@ -9,17 +9,16 @@ import numpy as np
 
 from network import MarginalizationNetwork
 
-# Number of archetypes (nodes) to use in the test. Change this to run with a different size.
-NUM_NODES = 1000
+# Number of agents (nodes) to use in the test. Change this to run with a different size.
+NUM_NODES = 100
 
 
 def test_network() -> None:
-    # JSON data lives in project root data/
-    data_dir = Path(__file__).resolve().parent.parent / "data"
+    # Generate agents dynamically
     net = MarginalizationNetwork(
-        archetypes_path=data_dir / "archetypes.json",
-        persona_vectors_path=data_dir / "persona_vectors.json",
-        max_archetypes=NUM_NODES,
+        n_agents=NUM_NODES,
+        use_generated=True,
+        device="cpu",  # Use 'mps', 'cuda', or 'cpu'
         logistic_k=1.0,
         logistic_x0=0.5,
     )
@@ -133,6 +132,52 @@ def test_network() -> None:
                 f"    {r['archetype_id']:4d}        | {r['effect']:.4f} | "
                 f"{r['vulnerability']:.4f}         | {r['influence']:.4f}    | {r['incoming_weight']:.4f}"
             )
+    
+    # Test with policy-based damage using predict_policy_answer
+    print("\n" + "="*70)
+    print("POLICY-BASED DAMAGE TEST")
+    print("="*70)
+    print("Testing damage calculation using predict_policy_answer...")
+    
+    # Import predict_policy_answer
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+    from predict_policy_answer import predict_policy_answer
+    
+    # Example policy
+    policy_text = "Implement stricter immigration enforcement and reduce access to public services for undocumented individuals."
+    
+    # Calculate damage for each agent using predict_policy_answer
+    policy_damage = np.zeros(NUM_NODES, dtype=np.float64)
+    print(f"Calculating policy damage for {NUM_NODES} agents...")
+    for i, agent in enumerate(net.agents[:10]):  # Show first 10 for brevity
+        benefit, damage = predict_policy_answer(policy_text, agent.desc_str)
+        policy_damage[i] = damage
+        if i < 5:
+            print(f"  Agent {i}: benefit={benefit:.4f}, damage={damage:.4f}")
+    
+    # Calculate for remaining agents silently
+    for i in range(10, NUM_NODES):
+        _, damage = predict_policy_answer(policy_text, net.agents[i].desc_str)
+        policy_damage[i] = damage
+    
+    print(f"\nPolicy damage statistics:")
+    print(f"  Mean: {policy_damage.mean():.4f}")
+    print(f"  Min: {policy_damage.min():.4f}")
+    print(f"  Max: {policy_damage.max():.4f}")
+    print(f"  Std: {policy_damage.std():.4f}")
+    
+    # Run one-step propagation with policy damage
+    policy_effect = net.run_one_step(policy_damage)
+    print(f"\nAfter one-step propagation:")
+    print(f"  Mean effect: {policy_effect.mean():.4f}")
+    print(f"  Max effect: {policy_effect.max():.4f}")
+    
+    # Show top affected by policy
+    top_policy = net.most_affected(policy_effect, top_k=5)
+    print(f"\nTop 5 most affected by policy:")
+    for rank, (aid, effect) in enumerate(top_policy, 1):
+        print(f"  {rank}. Agent {aid}: effect={effect:.4f}, initial_damage={policy_damage[aid]:.4f}")
 
 
 if __name__ == "__main__":

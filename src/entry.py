@@ -25,6 +25,11 @@ from predict_policy_answer import predict_policy_answer
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from network.network import MarginalizationNetwork
 
+# Configuration constants
+NUM_NODES = 5  # Number of agents to generate
+BENEFIT_TUNING = 1.0  # Multiplier for benefit in net impact calculation
+DAMAGE_TUNING = 1.0  # Multiplier for damage in net impact calculation
+
 
 class PolicyAnalyzer:
     """
@@ -69,14 +74,14 @@ class PolicyAnalyzer:
         print(f"Loaded {len(self.archetype_descriptions)} archetype descriptions")
     
     
-    def analyze_policy_with_avnehs_code(self, policy_text: str, archetypes: list) -> tuple[np.ndarray, np.ndarray]: # so basically an ndarray of scalars for each node
-        benefits = []
-        damages = []
+    def analyze_policy_with_avnehs_code(self, policy_text: str, archetypes: list) -> np.ndarray:
+        """Compute net impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING) for each archetype."""
+        net_impacts = []
         for archetype in archetypes:
             benefit, damage = predict_policy_answer(policy_text, archetype["description"])
-            benefits.append(benefit)
-            damages.append(damage)
-        return np.array(benefits), np.array(damages)
+            net_impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING)
+            net_impacts.append(net_impact)
+        return np.array(net_impacts)
 
     
     def analyze_policy(
@@ -140,14 +145,18 @@ class PolicyAnalyzer:
                 # Positive policy: low or no damage
                 damage = np.zeros_like(similarities)
         elif method == "avneh":
-            _, damage = self.analyze_policy_with_avnehs_code(policy_text, self.archetype_descriptions)
+            damage = self.analyze_policy_with_avnehs_code(policy_text, self.archetype_descriptions)
+            # Note: 'damage' variable now contains net_impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING)
+            # Negative values mean net harm, positive values mean net benefit
 
         else:
             raise ValueError(f"Unknown method: {method}")
         
-        # Apply threshold and scale
-        damage = np.where(damage >= impact_threshold, damage, 0.0)
-        damage = np.clip(damage * damage_scale, 0.0, 1.0)
+        # For avneh method, damage is already net_impact, no need for threshold/scale
+        if method != "avneh":
+            # Apply threshold and scale
+            damage = np.where(damage >= impact_threshold, damage, 0.0)
+            damage = np.clip(damage * damage_scale, 0.0, 1.0)
         
         print(f"Policy analysis: {np.sum(damage > 0)} archetypes impacted (damage > 0)")
         return damage
@@ -250,10 +259,15 @@ class PolicyImpactSimulator:
         )
         
         # Show initial impact
-        print(f"\nInitial damage statistics:")
-        print(f"  Mean damage: {np.mean(initial_damage):.4f}")
-        print(f"  Max damage: {np.max(initial_damage):.4f}")
-        print(f"  Nodes with damage > 0: {np.sum(initial_damage > 0)}")
+        print(f"\nInitial net impact values (benefit*{BENEFIT_TUNING} - damage*{DAMAGE_TUNING}):")
+        print(f"  {initial_damage.tolist()}")
+        
+        print(f"\nInitial impact statistics:")
+        print(f"  Mean: {np.mean(initial_damage):.4f}")
+        print(f"  Min: {np.min(initial_damage):.4f}")
+        print(f"  Max: {np.max(initial_damage):.4f}")
+        print(f"  Positive (net benefit): {np.sum(initial_damage > 0)}")
+        print(f"  Negative (net harm): {np.sum(initial_damage < 0)}")
         
         # Propagate damage through network
         print("\n" + "="*70)
@@ -276,6 +290,13 @@ class PolicyImpactSimulator:
         
         # Get top affected at final step
         final_damage = cascade_history[-1]
+        
+        # For net impact, show both most harmed (lowest/most negative) and most benefited (highest/most positive)
+        sorted_indices = np.argsort(final_damage)  # Ascending order
+        most_harmed_indices = sorted_indices[:top_k]  # Lowest values = most net harm
+        most_benefited_indices = sorted_indices[-top_k:][::-1]  # Highest values = most net benefit
+        
+        # Legacy top_affected for compatibility
         top_affected = self.network.most_affected(final_damage, top_k=top_k)
         
         # Get all affected with attributes for final step
@@ -285,13 +306,23 @@ class PolicyImpactSimulator:
         )
         
         print("\n" + "="*70)
-        print(f"TOP {top_k} MOST AFFECTED ARCHETYPES (Final Step)")
+        print(f"TOP {top_k} MOST HARMED ARCHETYPES (Final Step - Most Negative Net Impact)")
         print("="*70)
-        for rank, (archetype_id, damage_score) in enumerate(top_affected, 1):
-            desc = self.analyzer.archetype_descriptions[archetype_id]["description"]
-            # Truncate description for display
+        for rank, idx in enumerate(most_harmed_indices, 1):
+            net_impact = final_damage[idx]
+            desc = self.analyzer.archetype_descriptions[idx]["description"]
             desc_short = desc[:150] + "..." if len(desc) > 150 else desc
-            print(f"\n{rank}. Archetype {archetype_id} (damage={damage_score:.4f})")
+            print(f"\n{rank}. Archetype {idx} (net impact={net_impact:+.4f})")
+            print(f"   {desc_short}")
+        
+        print("\n" + "="*70)
+        print(f"TOP {top_k} MOST BENEFITED ARCHETYPES (Final Step - Most Positive Net Impact)")
+        print("="*70)
+        for rank, idx in enumerate(most_benefited_indices, 1):
+            net_impact = final_damage[idx]
+            desc = self.analyzer.archetype_descriptions[idx]["description"]
+            desc_short = desc[:150] + "..." if len(desc) > 150 else desc
+            print(f"\n{rank}. Archetype {idx} (net impact={net_impact:+.4f})")
             print(f"   {desc_short}")
         
         return {
@@ -371,8 +402,9 @@ def main():
     
     # Initialize simulator with generated agents
     print("\nInitializing policy impact simulator...")
+    print(f"Configuration: NUM_NODES={NUM_NODES}, BENEFIT_TUNING={BENEFIT_TUNING}, DAMAGE_TUNING={DAMAGE_TUNING}")
     simulator = PolicyImpactSimulator(
-        n_agents=100,  # Generate 100 agents (adjust as needed)
+        n_agents=NUM_NODES,
         data_dir=data_dir,
         model_name="all-MiniLM-L6-v2",
         device="cpu",  # Use 'mps' for Mac, 'cuda' for NVIDIA GPU, 'cpu' otherwise
@@ -384,10 +416,10 @@ def main():
     # Run simulation
     results = simulator.run_simulation(
         policy_text=policy_text,
-        impact_threshold=0.3,  # Lower threshold to catch more impacts
-        damage_scale=1.0,
-        method="similarity",  # Use similarity-based damage
-        cascade_steps=3,
+        impact_threshold=0.0,  # No threshold - use raw damage scores
+        damage_scale=0.1,
+        method="avneh",  # Use predict_policy_answer for accurate damage estimation
+        cascade_steps=0,  # No propagation - just show direct policy damage
         accumulation="replace",
         top_k=20,
     )

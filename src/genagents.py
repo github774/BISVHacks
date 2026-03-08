@@ -160,17 +160,23 @@ def build_agent_description(agent: Agent) -> str:
     # Convert attrs to int-keyed dict for easier access
     p = {int(k): v for k, v in agent.attrs.items()}
     
-    # Sentence 1: Demographics and employment
+    # Sentence 1: Demographics, employment, and immigration
     income = _format_val(p.get(1, "unknown"))
     employment = _format_val(p.get(6, "unknown"))
     industry = _format_val(p.get(7, "unknown"))
     education = _format_val(p.get(3, "unknown"))
     age = _format_val(p.get(11, "unknown"))
     gender = _format_val(p.get(12, "unknown"))
+    ethnicity = _format_val(p.get(14, "unknown"))
+    immigration = _format_val(p.get(15, "unknown"))
+    language_prof = _format_val(p.get(18, "unknown"))
+    primary_lang = _format_val(p.get(19, "unknown"))
 
     s1 = (
         f"This person has {income} income, works {employment} in the {industry} industry "
-        f"with {education} education, and is in the {age} age group, {gender}."
+        f"with {education} education, and is in the {age} age group, {gender}. "
+        f"They are {ethnicity} ethnicity, {immigration} immigration status, speak {primary_lang} "
+        f"as primary language with {language_prof} proficiency in English."
     )
 
     # Sentence 2: Family, housing, and health
