@@ -42,12 +42,12 @@ def test_network() -> None:
     assert node_i != node_j
     assert 0 <= least_sim <= 1
 
-    # Effect is in [0, 1]
-    damage = np.zeros(NUM_NODES, dtype=np.float64)
-    damage[0] = 0.5
-    effect = net.run_one_step(damage)
+    # Effects are in [-1, 1]
+    initial_effect = np.zeros(NUM_NODES, dtype=np.float64)
+    initial_effect[0] = 1.0
+    effect = net.run_one_step(initial_effect)
     assert effect.shape == (NUM_NODES,)
-    assert np.all(effect >= 0) and np.all(effect <= 1), "Effect should be in [0, 1]"
+    assert np.all(effect >= -1) and np.all(effect <= 1), "Effect should be in [-1, 1]"
 
     # Most affected returns top nodes
     # top_k = 15
@@ -64,7 +64,7 @@ def test_network() -> None:
     assert np.allclose([v for _, v in all_affected], effect)
 
     # Per-node attributes: effect, vulnerability, influence, incoming_weight
-    rows = net.all_affected_with_attributes(effect, damage)
+    rows = net.all_affected_with_attributes(effect, initial_effect)
     assert len(rows) == NUM_NODES
     assert all(
         set(r.keys()) == {"archetype_id", "effect", "vulnerability", "influence", "incoming_weight"}
@@ -73,15 +73,15 @@ def test_network() -> None:
 
     # Cascading: history shape (steps+1, N)
     cascade_steps = 3
-    history = net.run_cascade(damage, steps=cascade_steps, accumulation="replace")
+    history = net.run_cascade(initial_effect, steps=cascade_steps, accumulation="replace")
     assert history.shape == (cascade_steps + 1, NUM_NODES)
-    assert np.all(history >= 0) and np.all(history <= 1)
+    assert np.all(history >= -1) and np.all(history <= 1)
 
-    # Accumulation "add": damage can grow then cap at 1
+    # Accumulation "add": effect accumulates then clamped to [-1, 1]
     add_steps = 2
-    history_add = net.run_cascade(damage, steps=add_steps, accumulation="add")
+    history_add = net.run_cascade(initial_effect, steps=add_steps, accumulation="add")
     assert history_add.shape == (add_steps + 1, NUM_NODES)
-    assert np.all(history_add >= 0) and np.all(history_add <= 1)
+    assert np.all(history_add >= -1) and np.all(history_add <= 1)
 
     print("test_network: all checks passed.")
     print(f"  Nodes: {net.n_nodes}")

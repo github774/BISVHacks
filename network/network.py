@@ -166,9 +166,9 @@ def compute_vulnerability(archetypes: list[dict]) -> np.ndarray:
                 scores.append(vulnerability_score(profile[key]))
         vuln[i] = np.mean(scores) if scores else DEFAULT_VULN
     # Normalize to [0, 1] across nodes (optional; already in ~[0,1])
-    lo, hi = vuln.min(), vuln.max()
-    if hi > lo:
-        vuln = (vuln - lo) / (hi - lo)
+    # lo, hi = vuln.min(), vuln.max()
+    # if hi > lo:
+    #     vuln = (vuln - lo) / (hi - lo)
     return np.clip(vuln * VULN_FACTOR, 0.0, 1.0)
 
 
@@ -253,17 +253,19 @@ def compute_effects(
     aggregate: str = "sum_then_logistic",
 ) -> np.ndarray:
     """
-    damage (N,), vulnerability (N,), weight (N,N).
-    Weight already contains logistic(similarity) in its definition.
-    Option A (aggregate='sum_then_logistic'): effect[B] = clip(sum_A damage[A]*vuln[B]*weight[A,B], 0, 1)
-    Option B (aggregate='per_neighbor'): effect[B] = 1 - prod_A (1 - clip(raw, 0, 1))
+    damage (N,), vulnerability (N,), weight (N,N). Damage and effect are in [-1, 1].
+    Weight already contains scaled similarity. Damage is clipped to [-1, 1] before use.
+    Option A (aggregate='sum_then_logistic'): effect[B] = clip(sum_A damage[A]*vuln[B]*weight[A,B], -1, 1)
+    Option B (aggregate='per_neighbor'): per = clip(raw, -1, 1), then combine and clip to [-1, 1].
     """
+    damage = np.clip(damage, -1.0, 1.0)
     raw = damage[:, np.newaxis] * vulnerability[np.newaxis, :] * weight
     if aggregate == "sum_then_logistic":
         total_raw = np.sum(raw, axis=0)
-        return np.clip(total_raw, 0.0, 1.0)
-    per = np.clip(raw, 0.0, 1.0)
-    return 1.0 - np.prod(1.0 - per, axis=0)
+        return np.clip(total_raw, -1.0, 1.0)
+    per = np.clip(raw, -1.0, 1.0)
+    combined = 1.0 - np.prod(1.0 - per, axis=0)
+    return np.clip(combined, -1.0, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -278,20 +280,20 @@ def propagate(
     accumulation: str = "replace",
 ) -> np.ndarray:
     """
-    Run cascading propagation for `steps` steps.
+    Run cascading propagation for `steps` steps. Damage and effect in [-1, 1].
     accumulation: 'replace' -> damage = effect each step; 'add' -> damage += effect.
     Returns (steps+1, N): damage at step 0, 1, ..., steps.
     """
     n = initial_damage.size
     history = np.zeros((steps + 1, n), dtype=np.float64)
-    damage = np.array(initial_damage, dtype=np.float64)
+    damage = np.clip(np.array(initial_damage, dtype=np.float64), -1.0, 1.0)
     history[0] = damage
     for t in range(1, steps + 1):
         effect = compute_effects(damage, vulnerability, weight)
         if accumulation == "replace":
             damage = effect
         else:
-            damage = np.clip(damage + effect, 0.0, 1.0)
+            damage = np.clip(damage + effect, -1.0, 1.0)
         history[t] = damage
     return history
 
