@@ -567,7 +567,7 @@
 
             <div class="w-full bg-white rounded-2xl shadow-xl p-8 mb-6 border border-slate-100 text-left">
                 <label class="block text-sm font-medium text-slate-700 mb-2">Policy Proposal Details</label>
-                <textarea
+                <textarea id="policy-input"
                     class="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none mb-6"
                     placeholder="e.g. Implement a 5% rent cap on all residential properties built before 2000 within a 2-mile radius of the city center..."></textarea>
 
@@ -595,9 +595,9 @@
                 </div>
             </div>
 
-            <button id="simulate-btn"
+            <button id="simulate-btn" type="button"
                 class="bg-slate-900 text-white px-8 py-4 rounded-full font-medium text-lg shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.6)] hover:bg-black transition-all transform hover:-translate-y-1 group relative overflow-hidden">
-                <span class="relative z-10 flex items-center gap-2">
+                <span id="simulate-btn-label" class="relative z-10 flex items-center gap-2">
                     Initialize Simulation
                     <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
@@ -685,36 +685,36 @@
     <div id="act3-results" class="min-h-screen bg-cream pb-20 pt-10 px-6 md:px-12 w-full max-w-7xl mx-auto">
         <h2 class="text-3xl font-bold mb-8">Simulation Outcomes</h2>
 
-        <!-- Stats Row -->
+        <!-- Stats Row (populated from backend) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                <div class="text-sm text-slate-500 mb-1">Pop. Affected</div>
-                <div class="text-3xl font-bold text-slate-900 counter" data-target="142500">0</div>
+                <div class="text-sm text-slate-500 mb-1">Agents</div>
+                <div id="stat-agents" class="text-3xl font-bold text-slate-900 counter" data-target="0">0</div>
             </div>
             <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                 <div class="text-sm text-slate-500 mb-1">Strong Support</div>
-                <div class="text-3xl font-bold text-teal-600 counter" data-target="68300">0</div>
+                <div id="stat-support" class="text-3xl font-bold text-teal-600 counter" data-target="0">0</div>
             </div>
             <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                 <div class="text-sm text-slate-500 mb-1">Strong Oppose</div>
-                <div class="text-3xl font-bold text-orange-600 counter" data-target="42100">0</div>
+                <div id="stat-oppose" class="text-3xl font-bold text-orange-600 counter" data-target="0">0</div>
             </div>
             <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                <div class="text-sm text-slate-500 mb-1">Displacement Risk</div>
-                <div class="text-3xl font-bold text-slate-900 counter" data-target="8450">0</div>
+                <div class="text-sm text-slate-500 mb-1">Neutral</div>
+                <div id="stat-neutral" class="text-3xl font-bold text-slate-900 counter" data-target="0">0</div>
             </div>
             <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
                 <div class="text-sm text-slate-500 mb-1">Est. Engagement</div>
-                <div class="text-3xl font-bold text-slate-900 counter" data-target="22100">0</div>
+                <div id="stat-engagement" class="text-3xl font-bold text-slate-900 counter" data-target="0">0</div>
             </div>
         </div>
 
-        <!-- Reaction Bar -->
+        <!-- Reaction Bar (populated from backend) -->
         <div class="mb-8">
-            <div class="flex justify-between text-sm font-medium mb-2">
-                <span class="text-teal-600">Support (48%)</span>
-                <span class="text-slate-500">Neutral (23%)</span>
-                <span class="text-orange-600">Oppose (29%)</span>
+            <div id="act3-bar-labels" class="flex justify-between text-sm font-medium mb-2">
+                <span class="text-teal-600">Support (0%)</span>
+                <span class="text-slate-500">Neutral (0%)</span>
+                <span class="text-orange-600">Oppose (0%)</span>
             </div>
             <div class="h-4 rounded-full flex overflow-hidden bg-slate-200 w-full relative">
                 <div id="bar-support" class="h-full bg-teal-500 w-0 transition-all duration-1000 ease-out"></div>
@@ -833,15 +833,15 @@
                 </div>
             </div>
 
-            <!-- Right Panel: AI Analysis -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-lg relative overflow-hidden">
+            <!-- Right Panel: AI Analysis (populated from backend) -->
+            <div id="act3-ai-panel" class="bg-white rounded-2xl p-6 border border-slate-100 shadow-lg relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
                 <div class="flex items-center gap-2 mb-4">
                     <div class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
                     <h3 class="font-semibold text-sm text-slate-500 uppercase tracking-wider">AI INSIGHT</h3>
                 </div>
-                <h4 class="text-xl font-bold mb-4">Strong divide along transit corridors.</h4>
-                <p class="text-slate-600 mb-6 leading-relaxed">
+                <h4 id="act3-ai-title" class="text-xl font-bold mb-4">Strong divide along transit corridors.</h4>
+                <p id="act3-ai-summary" class="text-slate-600 mb-6 leading-relaxed">
                     The policy generates high initial approval in the central business district, but faces cascading
                     opposition in suburban rings. Analysis indicates that the lack of supplementary transit funding is
                     the primary driver of this resistance.
@@ -849,7 +849,7 @@
 
                 <div class="bg-slate-50 border-l-4 border-teal-500 p-4 rounded-r-lg">
                     <div class="text-xs font-bold text-teal-700 uppercase mb-1">Key Finding</div>
-                    <div class="text-sm font-medium text-slate-800">
+                    <div id="act3-ai-finding" class="text-sm font-medium text-slate-800">
                         Amending Section B to delay rollout in zones 4-6 by 18 months decreases overall opposition by an
                         estimated 22%.
                     </div>
@@ -1012,6 +1012,49 @@
         const OPPOSE_COLOR = new THREE.Color(0xf97316);  // Orange
         const NEUTRAL_COLOR = new THREE.Color(0x94a3b8); // Slate
 
+        // === BACKEND API (Flask) ===
+        const API_BASE = (typeof window !== 'undefined' && window.MARGIN_API_BASE) || 'http://localhost:5000';
+        window.lastAnalysisResult = null;
+
+        async function analyzePolicy(policyText) {
+            const res = await fetch(API_BASE + '/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ policy_text: policyText })
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || res.statusText || 'Analysis failed');
+            }
+            return res.json();
+        }
+
+        function renderAct3FromBackend(data) {
+            if (!data || !data.summary) return;
+            const s = data.summary;
+            const el = (id) => document.getElementById(id);
+            if (el('stat-agents')) { el('stat-agents').textContent = s.n_agents; el('stat-agents').dataset.target = s.n_agents; }
+            if (el('stat-support')) { el('stat-support').textContent = s.n_benefited; el('stat-support').dataset.target = s.n_benefited; }
+            if (el('stat-oppose')) { el('stat-oppose').textContent = s.n_harmed; el('stat-oppose').dataset.target = s.n_harmed; }
+            if (el('stat-neutral')) { el('stat-neutral').textContent = s.n_neutral; el('stat-neutral').dataset.target = s.n_neutral; }
+            if (el('stat-engagement')) { el('stat-engagement').textContent = s.n_agents; el('stat-engagement').dataset.target = s.n_agents; }
+            if (el('bar-support')) el('bar-support').style.width = s.pct_support + '%';
+            if (el('bar-neutral')) el('bar-neutral').style.width = s.pct_neutral + '%';
+            if (el('bar-oppose')) el('bar-oppose').style.width = s.pct_oppose + '%';
+            if (el('act3-bar-labels')) {
+                el('act3-bar-labels').innerHTML = '<span class="text-teal-600">Support (' + s.pct_support + '%)</span><span class="text-slate-500">Neutral (' + s.pct_neutral + '%)</span><span class="text-orange-600">Oppose (' + s.pct_oppose + '%)</span>';
+            }
+            if (el('act3-ai-title')) el('act3-ai-title').textContent = 'Policy impact from marginalization network.';
+            if (el('act3-ai-summary') && data.most_harmed && data.most_harmed.length) {
+                const d = (data.most_harmed[0].description || '').slice(0, 280);
+                el('act3-ai-summary').textContent = 'Most harmed archetype (net impact ' + data.most_harmed[0].net_impact + '): ' + d + (d.length >= 280 ? '...' : '');
+            }
+            if (el('act3-ai-finding') && data.most_benefited && data.most_benefited.length) {
+                const d = (data.most_benefited[0].description || '').slice(0, 140);
+                el('act3-ai-finding').textContent = 'Most benefited (net impact ' + data.most_benefited[0].net_impact + '): ' + d + (d.length >= 140 ? '...' : '');
+            }
+        }
+
         // === ACT 1 TO ACT 2 TRANSITION ===
         const btnSimulate = document.getElementById('simulate-btn');
         const act1 = document.getElementById('act1-input');
@@ -1023,7 +1066,25 @@
         const logo = document.getElementById('logo');
         const navLinksArr = document.querySelectorAll('#nav-links a');
 
-        btnSimulate.addEventListener('click', () => {
+        btnSimulate.addEventListener('click', async () => {
+            const policyInput = document.getElementById('policy-input');
+            const policyText = (policyInput && policyInput.value && policyInput.value.trim()) || '';
+            const label = document.getElementById('simulate-btn-label');
+            if (policyText) {
+                try {
+                    if (label) label.textContent = 'Analyzing...';
+                    btnSimulate.disabled = true;
+                    const data = await analyzePolicy(policyText);
+                    window.lastAnalysisResult = data;
+                } catch (e) {
+                    alert('Analysis failed: ' + (e.message || 'Unknown error'));
+                    if (label) label.textContent = 'Initialize Simulation';
+                    btnSimulate.disabled = false;
+                    return;
+                }
+                if (label) label.textContent = 'Initialize Simulation';
+                btnSimulate.disabled = false;
+            }
             act1.classList.add('fade-out');
             setTimeout(() => {
                 act1.style.display = 'none';
@@ -1088,6 +1149,7 @@
             act2.style.pointerEvents = 'none';
             act2ui.style.opacity = '0';
             act3.style.display = 'block';
+            renderAct3FromBackend(window.lastAnalysisResult);
             const act4 = document.getElementById('act4-network');
             if (act4) act4.classList.add('hidden');
 
@@ -1492,6 +1554,7 @@
             navLinksArr.forEach(link => link.classList.remove('text-slate-300'));
 
             act3.style.display = 'block';
+            renderAct3FromBackend(window.lastAnalysisResult);
 
             // Toggle view nav display
             viewToggle.classList.remove('hidden');
