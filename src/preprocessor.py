@@ -178,3 +178,33 @@ def preprocess_batched_mps(
         out = probs @ pers
 
     return out.cpu().numpy().astype(np.float32)
+
+
+def preprocess_batched_mps_preloaded(
+    embeddings: torch.Tensor,
+    desc_t: torch.Tensor,
+    pers_t: torch.Tensor,
+    top_k: int = 10,
+    round_to: float = 0.0001,
+    scale: float = 10000,
+) -> torch.Tensor:
+    """
+    Batched MPS preprocess with pre-loaded desc/pers on device.
+    embeddings: (B, 384) on device, desc_t: (N, 384), pers_t: (N, 384).
+    Returns: (B, 384) tensor on same device.
+    """
+    with torch.inference_mode():
+        q_norm = F.normalize(embeddings, p=2, dim=-1)
+        desc_norm = F.normalize(desc_t, p=2, dim=-1)
+        sim = q_norm @ desc_norm.T
+
+        top_vals, top_idx = torch.topk(sim, k=top_k, dim=-1)
+        weights = torch.zeros_like(sim, device=embeddings.device, dtype=sim.dtype)
+        weights.scatter_(-1, top_idx, top_vals)
+
+        weights = torch.round(weights / round_to) * round_to
+        scaled = weights * scale
+        scaled = scaled - scaled.max(dim=-1, keepdim=True).values
+        probs = F.softmax(scaled, dim=-1)
+        out = probs @ pers_t
+    return out
