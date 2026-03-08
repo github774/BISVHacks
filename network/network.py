@@ -46,31 +46,105 @@ def load_persona_vectors(path: str | Path) -> np.ndarray:
 
 # Dimensions: 35 Health insurance, 42 Housing stability, 83 Legal vulnerability, 84 Exposure to discrimination, 90 Financial resilience
 VULNERABILITY_DIMS = (35, 42, 83, 84, 90)
+VULN_FACTOR = 1.0
 
-# Categorical -> vulnerability score (higher = more vulnerable). Used for vulnerability-increasing values.
+# Categorical -> vulnerability score (higher = more vulnerable).
+# Rich / resourced / stable -> low vuln; poor / exposed / unstable -> high vuln.
+# Covers profile values across dimensions; same word can have different meaning per dimension (one map used for all).
 VULN_VALUE_MAP = {
+    # Highest vulnerability: no resources, exposed, unstable
     "none": 1.0,
     "very low": 1.0,
-    "low": 0.8,
-    "limited": 0.7,
-    "unaffordable": 0.9,
+    "unaffordable": 0.95,
     "unstable": 0.9,
     "unsafe": 0.9,
-    "high": 0.2,  # e.g. exposure to discrimination -> high vuln
-    "strong": 0.2,
+    "unemployed": 0.95,
+    "homeless": 1.0,
+    "undocumented": 0.95,
+    "downward": 0.85,
+    "far": 0.75,
+    "long": 0.7,
+    # Low / limited / poor
+    "low": 0.8,
+    "limited": 0.75,
+    "poor": 0.85,
+    "small": 0.7,
+    "rare": 0.7,
+    "rarely": 0.7,
+    # Moderate / middle
     "moderate": 0.5,
     "medium": 0.5,
+    "occasional": 0.55,
     "basic": 0.6,
+    "some": 0.55,
+    # Resourced / stable (lower vulnerability)
     "public": 0.6,
-    "private": 0.3,
-    "affordable": 0.4,
-    "stable": 0.3,
-    "good": 0.3,
-    "easy": 0.3,
+    "affordable": 0.45,
+    "stable": 0.35,
+    "good": 0.35,
+    "easy": 0.35,
+    "high": 0.25,
+    "strong": 0.25,
+    "private": 0.25,
     "frequent": 0.4,
-    "occasional": 0.5,
-    "downward": 0.8,
-    "upward": 0.2,
+    "upward": 0.25,
+    # Rich / wealthy / secure (low vulnerability — how can you be rich and vulnerable)
+    "rich": 0.15,
+    "wealthy": 0.15,
+    "very high": 0.2,
+    "excellent": 0.2,
+    "full": 0.25,
+    "secure": 0.2,
+    "safe": 0.25,
+    "abundant": 0.2,
+    "leadership": 0.25,
+    "owner": 0.3,
+    "fluent": 0.35,
+    "advanced": 0.3,
+    "personal": 0.35,
+    "yes": 0.45,
+    "no": 0.5,
+    # Demographics / neutral (context-dependent)
+    "child": 0.65,
+    "elder": 0.6,
+    "senior": 0.5,
+    "mid-career": 0.45,
+    "young": 0.5,
+    "married": 0.45,
+    "single": 0.55,
+    "widowed": 0.6,
+    "domestic": 0.4,
+    "citizen": 0.4,
+    "permanent resident": 0.5,
+    "member": 0.45,
+    "dual earner": 0.4,
+    "renter": 0.65,
+    "suburban": 0.45,
+    "urban": 0.5,
+    "rural": 0.55,
+    "growing": 0.4,
+    "manual": 0.6,
+    "part-time": 0.7,
+    "gig": 0.75,
+    "full-time": 0.45,
+    "college": 0.45,
+    "agriculture": 0.6,
+    "manufacturing": 0.5,
+    "english": 0.45,
+    "majority": 0.45,
+    "lgbtq": 0.55,
+    "nonbinary": 0.5,
+    "male": 0.45,
+    "female": 0.5,
+    "other": 0.5,
+    "6+": 0.6,
+    "4–5": 0.5,
+    "4-5": 0.5,
+    "<5": 0.55,
+    "15+": 0.5,
+    "multiple": 0.5,
+    "mandarin": 0.5,
+    "spanish": 0.5,
 }
 DEFAULT_VULN = 0.5
 
@@ -95,7 +169,7 @@ def compute_vulnerability(archetypes: list[dict]) -> np.ndarray:
     lo, hi = vuln.min(), vuln.max()
     if hi > lo:
         vuln = (vuln - lo) / (hi - lo)
-    return np.clip(vuln, 0.0, 1.0)
+    return np.clip(vuln * VULN_FACTOR, 0.0, 1.0)
 
 
 # ---------------------------------------------------------------------------
@@ -121,17 +195,33 @@ def compute_influence(archetypes: list[dict]) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# 4. Similarity from persona_vectors (cosine, then shift to [0,1])
+# 4. Similarity from persona_vectors (cosine, then scale to [0,1])
 # ---------------------------------------------------------------------------
 
+# Scale so that raw cosine 0.999995 -> 0 and 1.0 -> 1 (spreads the narrow band)
+COS_SIM_SCALE_MIN = 0.999995
+COS_SIM_SCALE_MAX = 1.0
+
+
+def scale_similarity(raw_cos: np.ndarray) -> np.ndarray:
+    """Linearly scale raw cosine from [COS_SIM_SCALE_MIN, COS_SIM_SCALE_MAX] to [0, 1]. Clip outside."""
+    scaled = (raw_cos - COS_SIM_SCALE_MIN) / (COS_SIM_SCALE_MAX - COS_SIM_SCALE_MIN)
+    return np.clip(scaled, 0.0, 1.0)
+
+
 def cosine_similarity_matrix(vectors: np.ndarray) -> np.ndarray:
-    """(N, D) -> (N, N) cosine similarity. Then shift to [0, 1]: (sim + 1) / 2."""
+    """(N, D) -> (N, N) raw cosine similarity in [-1, 1]."""
     norms = np.linalg.norm(vectors, axis=1, keepdims=True)
     norms = np.where(norms == 0, 1.0, norms)
     unit = vectors / norms
     sim = unit @ unit.T
-    sim = np.clip(sim, -1.0, 1.0)
-    return (sim + 1.0) / 2.0
+    return np.clip(sim, -1.0, 1.0)
+
+
+def similarity_matrix_scaled(vectors: np.ndarray) -> np.ndarray:
+    """(N, D) -> (N, N) cosine similarity scaled so 0.999995 -> 0, 1 -> 1."""
+    raw = cosine_similarity_matrix(vectors)
+    return scale_similarity(raw)
 
 
 # ---------------------------------------------------------------------------
@@ -233,6 +323,37 @@ def all_affected(
     return indexed
 
 
+def all_affected_with_attributes(
+    effect: np.ndarray,
+    vulnerability: np.ndarray,
+    influence: np.ndarray,
+    weight: np.ndarray,
+    damage: np.ndarray,
+    archetype_ids: Optional[list[int]] = None,
+) -> list[dict]:
+    """
+    Return list of dicts with per-node: archetype_id, effect, vulnerability,
+    influence (node's own edge-weight scalar), incoming_weight (from other damaged nodes to this node; self-loops excluded).
+    """
+    n = len(effect)
+    if archetype_ids is None:
+        archetype_ids = list(range(n))
+    # incoming_weight[B] = sum over A != B of (damage[A] * weight[A, B])
+    weight_no_self = weight.copy()
+    weight_no_self[np.arange(n), np.arange(n)] = 0.0
+    incoming_weight = (damage @ weight_no_self) if damage.ndim == 1 else (damage @ weight_no_self).flatten()
+    return [
+        {
+            "archetype_id": archetype_ids[i],
+            "effect": float(effect[i]),
+            "vulnerability": float(vulnerability[i]),
+            "influence": float(influence[i]),
+            "incoming_weight": float(incoming_weight[i]),
+        }
+        for i in range(n)
+    ]
+
+
 # ---------------------------------------------------------------------------
 # MarginalizationNetwork: single entry point
 # ---------------------------------------------------------------------------
@@ -281,11 +402,8 @@ class MarginalizationNetwork:
 
         self._vulnerability = compute_vulnerability(self.archetypes)
         self._influence = compute_influence(self.archetypes)
-        self._similarity = cosine_similarity_matrix(self._vectors)
-        # Apply logistic only to similarity (not to final effect)
-        self._similarity = logistic(
-            self._similarity, k=self.logistic_k, x0=self.logistic_x0
-        )
+        # Scaled so raw cosine 0.999995 -> 0, 1.0 -> 1
+        self._similarity = similarity_matrix_scaled(self._vectors)
         if self.similarity_threshold is not None:
             self._similarity = np.where(
                 self._similarity >= self.similarity_threshold, self._similarity, 0.0
@@ -315,6 +433,30 @@ class MarginalizationNetwork:
         if self._weight is None:
             self.load()
         return self._weight
+
+    @property
+    def vectors(self) -> np.ndarray:
+        """Persona vectors (N, D). Loads data if needed."""
+        if self._vectors is None:
+            self.load()
+        return self._vectors
+
+    def cosine_similarity_from_node(self, node_index: int) -> np.ndarray:
+        """Scaled similarity from node_index to every other node (0.999995->0, 1->1), in [0, 1]."""
+        raw = cosine_similarity_matrix(self.vectors)
+        row = raw[node_index]
+        return scale_similarity(row)
+
+    def least_similar_pair(self) -> tuple[int, int, float]:
+        """Return (i, j, scaled_similarity) for the pair of distinct nodes with minimum (scaled) similarity."""
+        raw = cosine_similarity_matrix(self.vectors)
+        scaled = scale_similarity(raw)
+        n = scaled.shape[0]
+        scaled_no_diag = scaled.copy()
+        scaled_no_diag[np.arange(n), np.arange(n)] = 2.0
+        idx = np.argmin(scaled_no_diag)
+        i, j = np.unravel_index(idx, scaled_no_diag.shape)
+        return (int(i), int(j), float(scaled[i, j]))
 
     def run_one_step(
         self,
@@ -357,16 +499,31 @@ class MarginalizationNetwork:
     ) -> list[tuple[int, float]]:
         return all_affected(effect)
 
+    def all_affected_with_attributes(
+        self,
+        effect: np.ndarray,
+        damage: np.ndarray,
+    ) -> list[dict]:
+        """Return per-node effect, vulnerability, influence, incoming_weight."""
+        return all_affected_with_attributes(
+            effect,
+            self.vulnerability,
+            self.influence,
+            self.weight,
+            damage,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Example / CLI
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    base = Path(__file__).resolve().parent
+    # JSON data lives in project root data/
+    data_dir = Path(__file__).resolve().parent.parent / "data"
     net = MarginalizationNetwork(
-        archetypes_path=base / "archetypes.json",
-        persona_vectors_path=base / "persona_vectors.json",
+        archetypes_path=data_dir / "archetypes.json",
+        persona_vectors_path=data_dir / "persona_vectors.json",
         logistic_k=1.0,
         logistic_x0=0.5,
     )
