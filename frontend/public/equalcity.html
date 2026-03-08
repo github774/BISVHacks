@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MARGIN - Global Inequality Digital Twin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .cream-bg {
+            background-color: #f7f5ef;
+        }
+
+        .black-bg {
+            background-color: #0d0d0d;
+        }
+
+        .text-cream {
+            color: #f7f5ef;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s ease-in forwards;
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                pointer-events: none;
+            }
+        }
+
+        .glowing-teal {
+            text-shadow: 0 0 10px rgba(20, 184, 166, 0.5);
+        }
+
+        .canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .ui-layer {
+            position: relative;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        #act2-city {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        #act2-ui {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 2;
+        }
+
+        #act3-results {
+            opacity: 0;
+            display: none;
+            padding-top: 80px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .stat-card {
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        .node-hover-ring {
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            to {
+                transform: scale(1.2);
+                opacity: 0.4;
+            }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        @keyframes slideInRight {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Chart animations */
+        .chart-bar {
+            transition: height 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .chart-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawLine 2s forwards;
+        }
+
+        @keyframes drawLine {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* === DARK MODE === */
+        .dark-mode .cream-bg {
+            background-color: #111113;
+        }
+
+        .dark-mode {
+            color: #e2e8f0;
+        }
+
+        .dark-mode .text-slate-900 {
+            color: #e2e8f0 !important;
+        }
+
+        .dark-mode .text-slate-700 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-slate-600 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-slate-500 {
+            color: #64748b !important;
+        }
+
+        .dark-mode .text-teal-600 {
+            color: #2dd4bf !important;
+        }
+
+        .dark-mode .text-teal-800 {
+            color: #5eead4 !important;
+        }
+
+        .dark-mode .text-slate-800 {
+            color: #cbd5e1 !important;
+        }
+
+        .dark-mode .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+
+        .dark-mode .text-teal-700 {
+            color: #2dd4bf !important;
+        }
+
+        .dark-mode .text-teal-400 {
+            color: #5eead4 !important;
+        }
+
+        .dark-mode .text-orange-600 {
+            color: #fb923c !important;
+        }
+
+        .dark-mode .text-orange-400 {
+            color: #fb923c !important;
+        }
+
+        /* Form elements in dark mode */
+        .dark-mode textarea,
+        .dark-mode select,
+        .dark-mode input {
+            background-color: #1a1a1e !important;
+            border-color: #333340 !important;
+            color: #e2e8f0 !important;
+        }
+
+        .dark-mode textarea::placeholder {
+            color: #64748b !important;
+        }
+
+        /* Dark mode simulate button */
+        .dark-mode .bg-slate-900 {
+            background-color: #0f172a !important;
+        }
+
+        .dark-mode .bg-slate-100 {
+            background-color: #1e1e22 !important;
+        }
+
+        .dark-mode .hover\:bg-slate-100:hover {
+            background-color: #252530 !important;
+        }
+
+        .dark-mode .bg-slate-200 {
+            background-color: #2a2a30 !important;
+        }
+
+        .dark-mode .bg-white {
+            background-color: #1e1e22 !important;
+        }
+
+        .dark-mode .bg-slate-50 {
+            background-color: #18181c !important;
+        }
+
+        .dark-mode .border-slate-100 {
+            border-color: #2a2a30 !important;
+        }
+
+        .dark-mode .border-slate-200 {
+            border-color: #2a2a30 !important;
+        }
+
+        .dark-mode .border-slate-300 {
+            border-color: #333340 !important;
+        }
+
+        .dark-mode .shadow-xl {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .dark-mode .border-black\/\[.08\] {
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Act 2 overlays in dark mode */
+        .dark-mode .bg-white\/80 {
+            background-color: rgba(30, 30, 34, 0.85) !important;
+        }
+
+        .dark-mode .bg-white\/50 {
+            background-color: rgba(30, 30, 34, 0.7) !important;
+        }
+
+        /* Scrollbar in dark mode */
+        .dark-mode ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+
+        /* Act 3 Key Finding */
+        .dark-mode .bg-slate-50.border-l-4,
+        .dark-mode .bg-teal-50 {
+            background-color: #132f2f !important;
+        }
+
+        .dark-mode .bg-slate-50.border-l-4 .text-slate-800,
+        .dark-mode .bg-slate-50.border-l-4 .text-teal-700 {
+            color: #5eead4 !important;
+        }
+
+        .dark-mode .bg-slate-50.border-l-4 div {
+            color: #e2e8f0 !important;
+        }
+
+        /* Teal blur blob in dark mode */
+        .dark-mode .bg-teal-50.rounded-full {
+            background-color: rgba(20, 184, 166, 0.08) !important;
+        }
+
+        /* Toggle button */
+        .theme-toggle-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.12);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .theme-toggle-btn {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(30, 30, 34, 0.8);
+        }
+
+        .dark-mode .theme-toggle-btn:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .theme-toggle-btn svg {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .theme-toggle-btn:hover svg {
+            transform: rotate(30deg);
+        }
+
+        /* View toggle in dark mode */
+        .dark-mode #view-toggle {
+            background: rgba(30, 30, 34, 0.6) !important;
+            border-color: #2a2a30 !important;
+        }
+
+        .dark-mode #toggle-overview.bg-white,
+        .dark-mode #toggle-network.bg-white {
+            background-color: #2a2a30 !important;
+        }
+
+        /* === NETWORK PAGE LIGHT MODE === */
+        /* When NOT in dark-mode, override the hardcoded dark network colors */
+        body:not(.dark-mode) #act4-network {
+            background-color: #f7f5ef !important;
+            color: #1e293b !important;
+        }
+
+        body:not(.dark-mode) #act4-network #network-container {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        body:not(.dark-mode) #act4-network #network-canvas {
+            background-color: #ffffff;
+        }
+
+        body:not(.dark-mode) #act4-network #node-tooltip {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #1e293b !important;
+        }
+
+        body:not(.dark-mode) #act4-network #node-tooltip .text-white {
+            color: #1e293b !important;
+        }
+
+        body:not(.dark-mode) #act4-network #node-tooltip .text-slate-300 {
+            color: #475569 !important;
+        }
+
+        body:not(.dark-mode) #act4-network #node-tooltip .text-slate-400 {
+            color: #64748b !important;
+        }
+
+        body:not(.dark-mode) #act4-network #node-tooltip .text-slate-500 {
+            color: #94a3b8 !important;
+        }
+
+        body:not(.dark-mode) #act4-network #node-tooltip [class*="border-slate"] {
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Right panel Drift Tree */
+        body:not(.dark-mode) #act4-network>.w-96 {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #1e293b !important;
+        }
+
+        /* Catch-ALL border override for network page in light mode */
+        body:not(.dark-mode) #act4-network [class*="border-slate-7"],
+        body:not(.dark-mode) #act4-network [class*="border-slate-8"] {
+            border-color: #e2e8f0 !important;
+        }
+
+        /* Catch-all for bg-slate-800 elements (badges, root card, vertical line) */
+        body:not(.dark-mode) #act4-network [class*="bg-slate-800"] {
+            background-color: #f1f5f9 !important;
+            color: #1e293b !important;
+        }
+
+        /* Tooltip bg-slate-900 */
+        body:not(.dark-mode) #act4-network .bg-slate-900 {
+            background-color: #ffffff !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-white {
+            color: #1e293b !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-slate-300 {
+            color: #475569 !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-slate-400 {
+            color: #64748b !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-slate-500 {
+            color: #64748b !important;
+        }
+
+        /* Drift tree items background */
+        body:not(.dark-mode) #act4-network [class*="bg-slate-800/"] {
+            background-color: rgba(241, 245, 249, 0.7) !important;
+        }
+
+        /* Branch connector backgrounds that match panel bg */
+        body:not(.dark-mode) #act4-network [class*="bg-[#111"] {
+            background-color: #ffffff !important;
+        }
+
+        body:not(.dark-mode) #act4-network [class*="border-[#111"] {
+            border-color: #ffffff !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-teal-400 {
+            color: #0d9488 !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-orange-400 {
+            color: #ea580c !important;
+        }
+
+        body:not(.dark-mode) #act4-network .text-white.font-mono {
+            color: #1e293b !important;
+        }
+
+        /* Vertical connection line in drift tree */
+        body:not(.dark-mode) #act4-network .w-px[class*="bg-slate"] {
+            background-color: #e2e8f0 !important;
+        }
+
+        /* Branch lines in drift tree */
+        body:not(.dark-mode) #act4-network [class*="border-l"][class*="border-slate"] {
+            border-left-color: #e2e8f0 !important;
+        }
+
+        /* Branch bottom border */
+        body:not(.dark-mode) #act4-network [class*="border-b"][class*="border-slate"] {
+            border-bottom-color: #e2e8f0 !important;
+        }
+    </style>
+</head>
+
+<body class="cream-bg text-slate-900 transition-colors duration-500" id="body-container">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-50 transition-colors duration-500"
+        id="main-nav">
+        <div class="font-bold text-2xl tracking-tighter" id="logo">MARGIN</div>
+
+        <!-- Toggle for specific acts -->
+        <div id="view-toggle"
+            class="hidden absolute left-1/2 transform -translate-x-1/2 bg-white/50 backdrop-blur rounded-full p-1 border border-slate-200">
+            <button id="toggle-overview"
+                class="px-4 py-1.5 rounded-full text-sm font-medium bg-white shadow-sm transition-all">Overview</button>
+            <button id="toggle-network"
+                class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-500 hover:text-slate-800 transition-all">Network</button>
+        </div>
+
+        <div class="flex gap-6 text-sm font-medium items-center" id="nav-links">
+            <a href="#" id="nav-home" class="text-teal-600 hover:text-teal-400 font-bold transition-colors">Home</a>
+            <a href="#" id="nav-console" class="text-teal-600 hover:text-teal-400 font-bold transition-colors">City
+                Console</a>
+            <a href="#" id="nav-results"
+                class="text-teal-600 hover:text-teal-400 font-bold transition-colors">Results</a>
+            <a href="#" class="text-teal-800 hover:text-teal-600 font-bold transition-colors">Sign In</a>
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
+                <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+                <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="display:none;">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ACT 1: INPUT PAGE -->
+    <main id="act1-input" class="min-h-screen flex items-center justify-center ui-layer relative pt-20">
+        <div class="max-w-3xl w-full px-6 flex flex-col items-center text-center">
+            <span class="text-teal-600 font-semibold tracking-wider text-sm mb-4 uppercase">Simulation Engine</span>
+            <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-tight">Drop a policy <br>into the
+                city.</h1>
+            <p class="text-lg text-slate-500 mb-10 max-w-2xl">
+                Paste a transit expansion, zoning change, or housing policy below.
+                Watch it ripple through thousands of simulated lives in real-time.
+            </p>
+
+            <div class="w-full bg-white rounded-2xl shadow-xl p-8 mb-6 border border-slate-100 text-left">
+                <label class="block text-sm font-medium text-slate-700 mb-2">Policy Proposal Details</label>
+                <textarea
+                    class="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none mb-6"
+                    placeholder="e.g. Implement a 5% rent cap on all residential properties built before 2000 within a 2-mile radius of the city center..."></textarea>
+
+                <div class="flex flex-col md:flex-row gap-6 mb-6">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Target Population</label>
+                        <select
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <option>Low-Income Renters</option>
+                            <option>Small Business Owners</option>
+                            <option>Suburban Commuters</option>
+                            <option>All Residents</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div
+                    class="flex items-center gap-3 text-sm text-slate-500 border border-dashed border-slate-300 rounded-xl p-4 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                        </path>
+                    </svg>
+                    <span>Attach supplemental geometry or impact study (CSV, GEOJSON)</span>
+                </div>
+            </div>
+
+            <button id="simulate-btn"
+                class="bg-slate-900 text-white px-8 py-4 rounded-full font-medium text-lg shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.6)] hover:bg-black transition-all transform hover:-translate-y-1 group relative overflow-hidden">
+                <span class="relative z-10 flex items-center gap-2">
+                    Initialize Simulation
+                    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </span>
+                <div
+                    class="absolute inset-0 bg-gradient-to-r from-teal-600 to-teal-400 opacity-0 group-hover:opacity-20 transition-opacity">
+                </div>
+            </button>
+        </div>
+    </main>
+
+    <!-- ACT 2: CITY VIEW (WebGL) -->
+    <div id="act2-city"></div>
+
+    <!-- ACT 2 UI Overlays -->
+    <div id="act2-ui" class="pointer-events-none p-6 flex flex-col justify-between">
+        <div class="flex justify-between items-start mt-20">
+            <!-- Sentiment Top Left -->
+            <div class="bg-white/80 backdrop-blur rounded-xl p-4 shadow-lg border border-slate-100 min-w-[200px]">
+                <div class="text-xs font-semibold text-slate-500 uppercase mb-3">Live Sentiment</div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.8)]"></div>
+                            Support
+                        </span>
+                        <span class="font-medium" id="sent-support">0%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></div>
+                            Oppose
+                        </span>
+                        <span class="font-medium" id="sent-oppose">0%</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-slate-300"></div> Neutral
+                        </span>
+                        <span class="font-medium" id="sent-neutral">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-end mb-6">
+            <!-- System Log Bottom Left -->
+            <div
+                class="bg-white/80 backdrop-blur rounded-xl p-4 shadow-lg border border-slate-100 max-w-sm w-full h-40 overflow-hidden relative">
+                <div class="text-xs font-semibold text-slate-500 uppercase mb-2 sticky top-0 bg-white/80 pb-1 z-10">
+                    System Log</div>
+                <div id="system-log" class="text-xs space-y-2 text-slate-600 overflow-y-auto h-full pb-6 pr-2">
+                    <div>[00:00:00] Simulation initialized.</div>
+                </div>
+            </div>
+
+            <!-- Captions Bottom Center -->
+            <div class="absolute left-1/2 bottom-12 transform -translate-x-1/2 text-center pointer-events-none">
+                <div id="caption-1"
+                    class="text-xl font-medium text-slate-900 bg-white/50 backdrop-blur px-4 py-1 rounded-lg mb-2 opacity-0 transition-opacity duration-1000">
+                    Policy injected into Metro Hub.</div>
+                <div id="caption-2"
+                    class="text-xl font-medium text-slate-900 bg-white/50 backdrop-blur px-4 py-1 rounded-lg mb-2 opacity-0 transition-opacity duration-1000 delay-1000">
+                    Calculating downstream economic impacts...</div>
+                <div id="caption-3"
+                    class="text-xl font-medium text-slate-900 bg-white/50 backdrop-blur px-4 py-1 rounded-lg opacity-0 transition-opacity duration-1000 delay-2000">
+                    Polarization forming in historic districts.</div>
+            </div>
+
+            <!-- Jump Button Bottom Right -->
+            <button id="jump-results-btn"
+                class="pointer-events-auto bg-white border border-slate-200 text-slate-900 px-6 py-3 rounded-full font-medium shadow-lg hover:bg-slate-50 transition-colors flex items-center gap-2 opacity-0 translate-y-4">
+                View Analytics Dash
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ACT 3: RESULTS DASHBOARD -->
+    <div id="act3-results" class="min-h-screen bg-cream pb-20 pt-10 px-6 md:px-12 w-full max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold mb-8">Simulation Outcomes</h2>
+
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="text-sm text-slate-500 mb-1">Pop. Affected</div>
+                <div class="text-3xl font-bold text-slate-900 counter" data-target="142500">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="text-sm text-slate-500 mb-1">Strong Support</div>
+                <div class="text-3xl font-bold text-teal-600 counter" data-target="68300">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="text-sm text-slate-500 mb-1">Strong Oppose</div>
+                <div class="text-3xl font-bold text-orange-600 counter" data-target="42100">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="text-sm text-slate-500 mb-1">Displacement Risk</div>
+                <div class="text-3xl font-bold text-slate-900 counter" data-target="8450">0</div>
+            </div>
+            <div class="stat-card bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                <div class="text-sm text-slate-500 mb-1">Est. Engagement</div>
+                <div class="text-3xl font-bold text-slate-900 counter" data-target="22100">0</div>
+            </div>
+        </div>
+
+        <!-- Reaction Bar -->
+        <div class="mb-8">
+            <div class="flex justify-between text-sm font-medium mb-2">
+                <span class="text-teal-600">Support (48%)</span>
+                <span class="text-slate-500">Neutral (23%)</span>
+                <span class="text-orange-600">Oppose (29%)</span>
+            </div>
+            <div class="h-4 rounded-full flex overflow-hidden bg-slate-200 w-full relative">
+                <div id="bar-support" class="h-full bg-teal-500 w-0 transition-all duration-1000 ease-out"></div>
+                <div id="bar-neutral" class="h-full bg-slate-400 w-0 transition-all duration-1000 ease-out delay-300">
+                </div>
+                <div id="bar-oppose" class="h-full bg-orange-500 w-0 transition-all duration-1000 ease-out delay-500">
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Panel: Charts -->
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Line Chart Mock -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm col-span-1 md:col-span-2">
+                    <h3 class="font-semibold text-lg mb-4">Combined Overview: Sentiment Timeline</h3>
+                    <div class="h-48 relative w-full border-b border-l border-slate-200">
+                        <svg class="w-full h-full" viewBox="0 0 100 50" preserveAspectRatio="none">
+                            <path class="chart-line hover:stroke-[3px] transition-all cursor-crosshair group"
+                                fill="none" stroke="#14b8a6" stroke-width="2" d="M0,40 Q20,35 40,20 T80,10 T100,5">
+                                <title>Support Trend: Rises to 48%</title>
+                            </path>
+                            <path class="chart-line hover:stroke-[3px] transition-all cursor-crosshair group"
+                                fill="none" stroke="#f97316" stroke-width="2" d="M0,45 Q20,40 50,30 T80,25 T100,20"
+                                style="animation-delay: 0.2s;">
+                                <title>Oppose Trend: Stabilizes at 30%</title>
+                            </path>
+                            <path class="chart-line hover:stroke-[3px] transition-all cursor-crosshair group"
+                                fill="none" stroke="#94a3b8" stroke-width="2" d="M0,10 Q20,15 40,30 T80,40 T100,45"
+                                style="animation-delay: 0.4s;">
+                                <title>Neutral Trend: Drops to 22%</title>
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Bar Chart Mock -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                    <h3 class="font-semibold text-lg mb-4">By Race / Ethnicity</h3>
+                    <div class="flex items-end gap-2 h-40 mt-6 relative">
+                        <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 80%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Support: 80%</div>
+                        </div>
+                        <div class="flex-1 bg-orange-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 20%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Oppose: 20%</div>
+                        </div>
+                        <div class="w-2"></div>
+                        <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 30%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Support: 30%</div>
+                        </div>
+                        <div class="flex-1 bg-orange-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 60%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Oppose: 60%</div>
+                        </div>
+                        <div class="w-2"></div>
+                        <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 50%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Support: 50%</div>
+                        </div>
+                        <div class="flex-1 bg-orange-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 40%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Oppose: 40%</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 mt-2">
+                        <span>White</span>
+                        <span>Black</span>
+                        <span>Hispanic</span>
+                    </div>
+                </div>
+
+                <!-- Income Bar Chart Mock -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
+                    <h3 class="font-semibold text-lg mb-4">By Income Bracket</h3>
+                    <div class="flex items-end gap-3 h-40 mt-6 relative">
+                        <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 30%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Low: 30%</div>
+                        </div>
+                        <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 60%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                Mid: 60%</div>
+                        </div>
+                        <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
+                            style="--target-h: 80%;">
+                            <div
+                                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+                                High: 80%</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500 mt-2">
+                        <span>Low</span>
+                        <span>Mid</span>
+                        <span>High</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-2 text-center uppercase tracking-widest">Support %</div>
+                </div>
+            </div>
+
+            <!-- Right Panel: AI Analysis -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
+                    <h3 class="font-semibold text-sm text-slate-500 uppercase tracking-wider">AI INSIGHT</h3>
+                </div>
+                <h4 class="text-xl font-bold mb-4">Strong divide along transit corridors.</h4>
+                <p class="text-slate-600 mb-6 leading-relaxed">
+                    The policy generates high initial approval in the central business district, but faces cascading
+                    opposition in suburban rings. Analysis indicates that the lack of supplementary transit funding is
+                    the primary driver of this resistance.
+                </p>
+
+                <div class="bg-slate-50 border-l-4 border-teal-500 p-4 rounded-r-lg">
+                    <div class="text-xs font-bold text-teal-700 uppercase mb-1">Key Finding</div>
+                    <div class="text-sm font-medium text-slate-800">
+                        Amending Section B to delay rollout in zones 4-6 by 18 months decreases overall opposition by an
+                        estimated 22%.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACT 4: NETWORK PAGE -->
+    <div id="act4-network"
+        class="hidden min-h-screen bg-[#0d0d0d] text-white pt-20 flex w-full h-screen overflow-hidden container mx-auto px-4 gap-6 pb-6">
+        <!-- Canvas Left bg-opacity-20 bg-slate-800-->
+        <div class="flex-grow rounded-2xl border border-slate-800 relative bg-[#111111] overflow-hidden"
+            id="network-container">
+            <canvas id="network-canvas" class="w-full h-full block"></canvas>
+
+            <!-- Tooltip -->
+            <div id="node-tooltip"
+                class="absolute hidden bg-slate-900 border border-slate-700 p-3 rounded-lg shadow-xl text-xs z-20 pointer-events-none transform -translate-x-1/2 -translate-y-[120%] w-64">
+                <div class="font-bold text-white mb-1" id="tt-name">Agent 402</div>
+                <div class="text-slate-400 mb-2">Stance: <span id="tt-stance" class="text-teal-400">Support</span></div>
+
+                <div class="border-t border-slate-700 pt-2 mb-2">
+                    <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Background</div>
+                    <div class="text-slate-300 leading-tight" id="tt-bg">Small business owner, 15 years in West End.
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-700 pt-2 mb-2" id="tt-decision-container">
+                    <div class="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Key Driver</div>
+                    <div class="text-slate-300 leading-tight italic" id="tt-decision">"Commercial rent caps provide
+                        needed stability."</div>
+                </div>
+
+                <div class="flex justify-between border-t border-slate-700 pt-2 mt-1">
+                    <div class="text-slate-500">Influence</div>
+                    <div class="text-white font-mono" id="tt-inf">0.85</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel Drift Tree -->
+        <div class="w-96 flex flex-col h-full bg-[#111111] border border-slate-800 rounded-2xl p-5 overflow-hidden">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+                <h3 class="font-semibold text-xl tracking-tight">Policy Drift Tree</h3>
+                <div class="bg-slate-800 px-3 py-1 rounded text-xs font-mono"><span id="live-drift-count">0</span>
+                    Events</div>
+            </div>
+
+            <!-- Root Card -->
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl mb-4 text-sm z-10 relative">
+                <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Time T=0</div>
+                <div class="font-medium text-white">Policy Introduced</div>
+            </div>
+
+            <div class="flex-grow overflow-y-auto pr-2 space-y-6 relative" id="drift-tree-container">
+                <!-- Vertical connection line -->
+                <div class="absolute left-6 top-0 bottom-0 w-px bg-slate-800 z-0"></div>
+
+                <!-- Early Adopters -->
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-3 bg-[#111111]">
+                        <div class="w-3 h-3 rounded-full bg-teal-500 border-2 border-[#111111]"></div>
+                        <h4 class="text-sm font-semibold text-slate-300 uppercase">Early Adopters</h4>
+                    </div>
+                    <div class="ml-6 space-y-2 border-l border-slate-800 pl-4 py-1" id="branch-support">
+                        <!-- Items slide in here -->
+                    </div>
+                </div>
+
+                <!-- Fence Sitters -->
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-3 bg-[#111111]">
+                        <div class="w-3 h-3 rounded-full bg-slate-500 border-2 border-[#111111]"></div>
+                        <h4 class="text-sm font-semibold text-slate-300 uppercase">Fence-sitters</h4>
+                    </div>
+                    <div class="ml-6 space-y-2 border-l border-slate-800 pl-4 py-1" id="branch-neutral">
+                        <!-- Items slide in here -->
+                    </div>
+                </div>
+
+                <!-- Skeptics -->
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-3 bg-[#111111]">
+                        <div class="w-3 h-3 rounded-full bg-orange-500 border-2 border-[#111111]"></div>
+                        <h4 class="text-sm font-semibold text-slate-300 uppercase">Skeptics</h4>
+                    </div>
+                    <div class="ml-6 space-y-2 border-l border-slate-800 pl-4 py-1" id="branch-oppose">
+                        <!-- Items slide in here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Placeholders (will be inserted by script appended block) -->
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // === GLOBAL STATE ===
+        let isSimulating = false;
+        let policyWave = { radius: 0, active: false };
+        let currentMode = 'overview'; // 'overview' or 'network'
+
+        // === DARK MODE TOGGLE ===
+        (function initDarkMode() {
+            const stored = localStorage.getItem('margin-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = stored === 'dark' || (!stored && prefersDark);
+            if (isDark) {
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+            }
+
+            // Wait for DOM
+            document.addEventListener('DOMContentLoaded', () => {
+                updateToggleIcon(document.body.classList.contains('dark-mode'));
+            });
+        })();
+
+        function updateToggleIcon(isDark) {
+            const moonIcon = document.getElementById('icon-moon');
+            const sunIcon = document.getElementById('icon-sun');
+            if (moonIcon && sunIcon) {
+                moonIcon.style.display = isDark ? 'none' : 'block';
+                sunIcon.style.display = isDark ? 'block' : 'none';
+                sunIcon.style.color = isDark ? '#fbbf24' : '';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            document.documentElement.classList.toggle('dark-mode');
+            localStorage.setItem('margin-theme', isDark ? 'dark' : 'light');
+            updateToggleIcon(isDark);
+        }
+
+        // Attach listener once DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('theme-toggle');
+            if (btn) btn.addEventListener('click', toggleDarkMode);
+        });
+
+        // Data formats for UI logic later
+        const districts = [];
+        const logLines = [
+            "Analyzing initial impact zones...",
+            "Demographic intersections computed.",
+            "Policy rippling through residential nodes."
+        ];
+
+        // Colors
+        const CREME = 0xf7f5ef;
+        const SUPPORT_COLOR = new THREE.Color(0x14b8a6); // Teal
+        const OPPOSE_COLOR = new THREE.Color(0xf97316);  // Orange
+        const NEUTRAL_COLOR = new THREE.Color(0x94a3b8); // Slate
+
+        // === ACT 1 TO ACT 2 TRANSITION ===
+        const btnSimulate = document.getElementById('simulate-btn');
+        const act1 = document.getElementById('act1-input');
+        const act2 = document.getElementById('act2-city');
+        const act2ui = document.getElementById('act2-ui');
+        const act3 = document.getElementById('act3-results');
+        const viewToggle = document.getElementById('view-toggle');
+        const nav = document.getElementById('main-nav');
+        const logo = document.getElementById('logo');
+        const navLinksArr = document.querySelectorAll('#nav-links a');
+
+        btnSimulate.addEventListener('click', () => {
+            act1.classList.add('fade-out');
+            setTimeout(() => {
+                act1.style.display = 'none';
+                act2.style.opacity = '1';
+                act2.style.pointerEvents = 'auto';
+
+                // Immediately start the camera drop
+                startSimulation();
+
+                // Show UI after a tiny delay
+                setTimeout(() => {
+                    act2ui.style.opacity = '1';
+                }, 500);
+            }, 500);
+        });
+
+        // Nav Links Logic
+        const navHome = document.getElementById('nav-home');
+        const navConsole = document.getElementById('nav-console');
+        const navResults = document.getElementById('nav-results');
+
+        function setCreamTheme() {
+            document.getElementById('body-container').classList.remove('black-bg');
+            document.getElementById('body-container').classList.add('cream-bg');
+            document.getElementById('logo').classList.remove('text-cream');
+            navLinksArr.forEach(link => link.classList.remove('text-slate-300'));
+        }
+
+        navHome.addEventListener('click', (e) => {
+            e.preventDefault();
+            setCreamTheme();
+            act1.style.display = 'flex';
+            act1.classList.remove('fade-out');
+            act2.style.opacity = '0';
+            act2.style.pointerEvents = 'none';
+            act2ui.style.opacity = '0';
+            act3.style.display = 'none';
+            const act4 = document.getElementById('act4-network');
+            if (act4) act4.classList.add('hidden');
+        });
+
+        navConsole.addEventListener('click', (e) => {
+            e.preventDefault();
+            setCreamTheme();
+            act1.style.display = 'none';
+            act2.style.display = 'block';
+            act2.style.opacity = '1';
+            act2.style.pointerEvents = 'auto';
+            act2ui.style.display = 'flex';
+            act2ui.style.opacity = '1';
+            act3.style.display = 'none';
+            const act4 = document.getElementById('act4-network');
+            if (act4) act4.classList.add('hidden');
+            if (typeof startSimulation === 'function' && !isSimulating) startSimulation();
+        });
+
+        navResults.addEventListener('click', (e) => {
+            e.preventDefault();
+            setCreamTheme();
+            act1.style.display = 'none';
+            act2.style.opacity = '0';
+            act2.style.pointerEvents = 'none';
+            act2ui.style.opacity = '0';
+            act3.style.display = 'block';
+            const act4 = document.getElementById('act4-network');
+            if (act4) act4.classList.add('hidden');
+
+            document.getElementById('toggle-overview').click(); // ensure overview tab active
+        });
+
+        // === ACT 2: THREE.JS CITY ===
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020205); // Very deep, almost black, blue-ish void
+        scene.fog = new THREE.FogExp2(0x020205, 0.003);
+
+        // Starfield
+        const starsGeo = new THREE.BufferGeometry();
+        const starsCount = 1500;
+        const posArray = new Float32Array(starsCount * 3);
+        const randSizeArray = new Float32Array(starsCount);
+        for (let i = 0; i < starsCount * 3; i++) {
+            // Keep stars relatively high or far
+            posArray[i] = (Math.random() - 0.5) * 800;
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const starsMat = new THREE.PointsMaterial({ size: 1.5, color: 0xffffff, transparent: true, opacity: 0.8, depthWrite: false });
+        const starField = new THREE.Points(starsGeo, starsMat);
+        scene.add(starField);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+        // Intro position straight down (top view)
+        camera.position.set(0.1, 400, 0.1);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        act2.appendChild(renderer.domElement);
+
+        // Lighting Foundation
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Dimmed for night
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xe0e7ff, 0.8); // Cooler night light
+        dirLight.position.set(50, 100, 50);
+        scene.add(dirLight);
+
+        // Ground (Removed solid plane, keeping only an ethereal grid)
+        // Grid lines overlay mimicking a digital base
+        const gridGeo = new THREE.GridHelper(500, 100, 0x14b8a6, 0x14b8a6);
+        gridGeo.material.transparent = true;
+        gridGeo.material.opacity = 0.1; // faint glowing grid
+        gridGeo.position.y = 0.1;
+        scene.add(gridGeo);
+
+        // Emissive center plate where actions concentrate
+        const centerPlateGeo = new THREE.CircleGeometry(50, 64);
+        const centerPlateMat = new THREE.MeshBasicMaterial({ color: 0x14b8a6, transparent: true, opacity: 0.05, side: THREE.DoubleSide, depthWrite: false });
+        const centerPlate = new THREE.Mesh(centerPlateGeo, centerPlateMat);
+        centerPlate.rotation.x = -Math.PI / 2;
+        centerPlate.position.y = 0.15;
+        scene.add(centerPlate);
+
+
+
+        // Buildings setup
+        const buildings = [];
+        const citySize = 200;
+
+        // Materials setup
+        // The core is nearly invisible, acting like a faint volume
+        const baseBuildingMat = new THREE.MeshPhongMaterial({
+            color: 0x051e3e,     // Deep holographic blue inner
+            emissive: 0x051e3e,
+            emissiveIntensity: 0.2,
+            shininess: 150,
+            transparent: true,
+            opacity: 0.2,        // Very faint core
+            side: THREE.FrontSide, // Only show front
+            depthWrite: false,   // Prevents z-fighting rendering issues with overlapping transparency
+            blending: THREE.AdditiveBlending // Gives hologram vibe
+        });
+
+        // Data particles flowing upwards (Holo streams)
+        const particlesGeo = new THREE.BufferGeometry();
+        const pCount = 2000;
+        const pPos = new Float32Array(pCount * 3);
+        const pSpeeds = new Float32Array(pCount);
+        for (let i = 0; i < pCount; i++) {
+            pPos[i * 3] = (Math.random() - 0.5) * citySize * 1.5;
+            pPos[i * 3 + 1] = Math.random() * 80; // random height
+            pPos[i * 3 + 2] = (Math.random() - 0.5) * citySize * 1.5;
+            pSpeeds[i] = 0.1 + Math.random() * 0.3; // rising speed
+        }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            color: 0x14b8a6, // Teal data streams
+            size: 1.0,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const particleSystem = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particleSystem);
+
+        // Wireframe overlay for the structure lines - intensely bright
+        const wireMat = new THREE.LineBasicMaterial({
+            color: 0x22d3ee, // Bright cyan
+            transparent: true,
+            opacity: 0.15,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false // Added depthWrite false
+        });
+
+        // Create buildings
+        for (let i = 0; i < 300; i++) {
+            // Random position in grid
+            const x = (Math.random() - 0.5) * citySize;
+            const z = (Math.random() - 0.5) * citySize;
+
+            // Varied dimensions
+            // Distance from center dictates height roughly
+            const distFromCenter = Math.sqrt(x * x + z * z);
+            const maxH = Math.max(10, 80 - distFromCenter * 0.6);
+
+            const w = 2 + Math.random() * 6;
+            const d = 2 + Math.random() * 6;
+            const h = 5 + Math.random() * maxH;
+
+            const geo = new THREE.BoxGeometry(w, h, d);
+            // Unique material per building so we can animate colors
+            const mat = baseBuildingMat.clone();
+            const mesh = new THREE.Mesh(geo, mat);
+
+            // Wireframe helper for holographic edges
+            const edges = new THREE.EdgesGeometry(geo);
+            const line = new THREE.LineSegments(edges, wireMat.clone());
+            mesh.add(line);
+
+            mesh.position.set(x, h / 2, z);
+
+            // Dedicated zones to ensure grey block stands out
+            let stance = 'neutral';
+            if (x > 25) stance = Math.random() > 0.15 ? 'support' : 'neutral';
+            else if (x < -25) stance = Math.random() > 0.15 ? 'oppose' : 'neutral';
+            else stance = 'neutral'; // solid grey block in the middle
+
+            buildings.push({
+                mesh: mesh,
+                line: line,
+                stance,
+                startColor: new THREE.Color(0x051e3e),
+                // Exaggerated bright neon colors for Hologram
+                targetColor: stance === 'support' ? new THREE.Color(0x06b6d4) : (stance === 'oppose' ? new THREE.Color(0xf97316) : new THREE.Color(0x94a3b8)),
+                changed: false,
+                dist: distFromCenter
+            });
+
+            scene.add(mesh);
+        }
+
+        // Policy Wave Ring
+        const waveGeo = new THREE.TorusGeometry(1, 0.5, 16, 100);
+        const waveMat = new THREE.MeshBasicMaterial({
+            color: 0x14b8a6,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false // CRITICAL: Stop the massive wave ring from aggressively blocking depth sorting of buildings lying inside its Torus volume
+        });
+        const waveMesh = new THREE.Mesh(waveGeo, waveMat);
+        waveMesh.rotation.x = Math.PI / 2;
+        waveMesh.position.y = 1;
+        waveMesh.visible = false;
+        scene.add(waveMesh);
+
+        // Orbital Rings
+        const ringGeo1 = new THREE.RingGeometry(140, 142, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x14b8a6, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthWrite: false });
+        const orbitRing1 = new THREE.Mesh(ringGeo1, ringMat);
+        orbitRing1.rotation.x = Math.PI / 2;
+        orbitRing1.position.y = 2;
+        scene.add(orbitRing1);
+
+        // Post Processing (Bloom)
+        // Must be very subtle on cream background
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.1; // Lower threshold to allow the holographic wires to glow
+        bloomPass.strength = 1.0; // Strong bloom to give light leaks
+        bloomPass.radius = 0.8;
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
+
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.minDistance = 30;
+        controls.maxDistance = 500;
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; // Slight ground limit
+        controls.autoRotate = false;
+        controls.autoRotateSpeed = 0.5;
+        controls.enabled = false; // Disabled during intro
+        let userInteracted = false;
+        controls.addEventListener('start', () => { userInteracted = true; controls.autoRotate = false; });
+        controls.addEventListener('end', () => {
+            // Resume auto-rotate after 5s of inactivity
+            setTimeout(() => { if (!controls._dragging) controls.autoRotate = true; }, 5000);
+        });
+
+        // Animation Intro state
+        let introProgress = 0;
+        let orbitalAngle = Math.PI / 2;
+
+        function startSimulation() {
+            isSimulating = true;
+
+            // Captions
+            document.getElementById('caption-1').style.opacity = '1';
+            setTimeout(() => document.getElementById('caption-1').style.opacity = '0', 3000);
+
+            setTimeout(() => {
+                document.getElementById('caption-2').style.opacity = '1';
+
+                // Trigger wave
+                policyWave.active = true;
+                policyWave.radius = 0;
+                waveMesh.visible = true;
+
+                // Shake camera briefly
+                const shakeStart = Date.now();
+                const shakeInterval = setInterval(() => {
+                    if (Date.now() - shakeStart > 500) { clearInterval(shakeInterval); return; }
+                    camera.position.x += (Math.random() - 0.5) * 2;
+                    camera.position.z += (Math.random() - 0.5) * 2;
+                }, 50);
+
+                setTimeout(() => document.getElementById('caption-2').style.opacity = '0', 3000);
+            }, 3500);
+
+            // System log updates
+            let logIdx = 0;
+            setInterval(() => {
+                if (logIdx < logLines.length && policyWave.active) {
+                    const logEl = document.getElementById('system-log');
+                    const div = document.createElement('div');
+                    div.className = "fade-in";
+                    div.textContent = `[00:00:0${logIdx + 2}] ${logLines[logIdx]}`;
+                    logEl.prepend(div);
+                    logIdx++;
+                }
+            }, 2000);
+        }
+
+        // Live updating UI sentiments
+        let sCount = 0, oCount = 0;
+        const sTarget = 48, oTarget = 29;
+
+        function animateCity() {
+            requestAnimationFrame(animateCity);
+
+            // Intro camera move (螺旋下降)
+            if (!isSimulating && introProgress < 1) {
+                // Just orbit before start
+            } else if (introProgress < 1) {
+                introProgress += 0.006;
+                const ease = 1 - Math.pow(1 - introProgress, 3); // easeOutCubic
+
+                // Spiral path
+                const r = ease * 250;
+                const a = ease * Math.PI / 2;
+
+                // prevent gimbal lock at exact 0
+                if (r < 0.1) {
+                    camera.position.x = 0.1;
+                    camera.position.z = 0.1;
+                } else {
+                    camera.position.x = Math.sin(a) * r;
+                    camera.position.z = Math.cos(a) * r;
+                }
+
+                camera.position.y = 400 - ease * 300;
+
+                camera.lookAt(0, 0, 0);
+
+                if (introProgress >= 1) {
+                    controls.enabled = true;
+                    controls.target.set(0, 0, 0);
+                    // Position camera at a nice angle and hand off to OrbitControls
+                    camera.position.set(
+                        Math.sin(Math.PI / 2) * 250,
+                        100,
+                        Math.cos(Math.PI / 2) * 250
+                    );
+                    camera.lookAt(0, 0, 0);
+                    controls.autoRotate = true;
+                    introProgress = 2; // Mark intro as fully done
+                }
+            } else {
+                // OrbitControls handles everything now
+                controls.update();
+            }
+
+            // Orbital ring animation
+            orbitRing1.rotation.z += 0.005;
+
+            // Wave logic
+            if (policyWave.active) {
+                policyWave.radius += 1.5;
+                const scale = policyWave.radius;
+
+                // Additive wave burst
+                waveMesh.scale.set(scale, scale, scale);
+                waveMesh.material.opacity = Math.max(0, 0.6 - (policyWave.radius / 150));
+
+                if (policyWave.radius > 200) {
+                    policyWave.active = false;
+                    waveMesh.visible = false;
+
+                    // Show final stuff
+                    document.getElementById('caption-3').style.opacity = '1';
+                    setTimeout(() => {
+                        const btn = document.getElementById('jump-results-btn');
+                        btn.style.opacity = '1';
+                        btn.style.transform = 'translateY(0)';
+                        btn.style.transition = 'all 0.5s ease';
+                        btn.classList.add('animate-bounce');
+                        setTimeout(() => btn.classList.remove('animate-bounce'), 1000);
+                    }, 2000);
+                }
+
+                // Building color transition check
+                buildings.forEach(b => {
+                    if (!b.changed && b.dist < policyWave.radius) {
+                        b.changed = true;
+
+                        // Fake sentiment tally
+                        if (b.stance === 'support' && sCount < sTarget) sCount += 2;
+                        if (b.stance === 'oppose' && oCount < oTarget) oCount += 1.5;
+
+                        document.getElementById('sent-support').innerText = Math.floor(sCount) + '%';
+                        document.getElementById('sent-oppose').innerText = Math.floor(oCount) + '%';
+                        document.getElementById('sent-neutral').innerText = Math.max(0, 100 - Math.floor(sCount) - Math.floor(oCount)) + '%';
+                    }
+
+                    if (b.changed) {
+                        // Lerp material color
+                        b.mesh.material.color.lerp(b.targetColor, 0.05);
+                        b.mesh.material.emissive.lerp(b.targetColor, 0.05);
+
+                        // Make wires glow the target color intensely
+                        b.line.material.color.lerp(b.targetColor, 0.1);
+
+                        if (b.stance !== 'neutral') {
+                            b.mesh.material.opacity = 0.20; // Less opaque to catch bloom without blowing out
+                            b.mesh.material.emissiveIntensity = 0.4;
+                            b.line.material.opacity = 0.5; // Less bright edges
+                        } else {
+                            // Keep neutral buildings distinctly grey and visible but subtle
+                            b.mesh.material.opacity = 0.15;
+                            b.mesh.material.emissiveIntensity = 0.2;
+                            b.line.material.opacity = 0.3;
+                        }
+                    }
+                });
+            }
+
+            // Animate Data Particles (Rising streams)
+            const positions = particleSystem.geometry.attributes.position.array;
+            for (let i = 0; i < pCount; i++) {
+                positions[i * 3 + 1] += pSpeeds[i];
+                if (positions[i * 3 + 1] > 100) {
+                    positions[i * 3 + 1] = 0; // Reset height
+                }
+            }
+            particleSystem.geometry.attributes.position.needsUpdate = true;
+
+            composer.render();
+        }
+
+        animateCity();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // === ACT 3 VISIBILITY LOGIC === //
+        const jumpBtn = document.getElementById('jump-results-btn');
+        jumpBtn.addEventListener('click', () => {
+            // Hide the city and UI
+            act2.style.display = 'none';
+            act2ui.style.display = 'none';
+            document.getElementById('body-container').classList.remove('black-bg');
+            document.getElementById('body-container').classList.add('cream-bg');
+            document.getElementById('logo').classList.remove('text-cream');
+            navLinksArr.forEach(link => link.classList.remove('text-slate-300'));
+
+            act3.style.display = 'block';
+
+            // Toggle view nav display
+            viewToggle.classList.remove('hidden');
+
+            // Scroll to top of act 3
+            window.scrollTo(0, 0);
+
+            // Trigger act 3 animations
+            setTimeout(() => {
+                document.getElementById('act3-results').style.opacity = '1';
+
+                // Numbers counter
+                document.querySelectorAll('.counter').forEach(count => {
+                    const target = parseInt(count.getAttribute('data-target'));
+                    let curr = 0;
+                    const step = target / 50;
+                    const intval = setInterval(() => {
+                        curr += step;
+                        if (curr >= target) { curr = target; clearInterval(intval); }
+                        count.innerText = Math.floor(curr).toLocaleString();
+                    }, 20);
+                });
+
+                // Bar fills
+                document.getElementById('bar-support').style.width = '48%';
+                document.getElementById('bar-neutral').style.width = '23%';
+                document.getElementById('bar-oppose').style.width = '29%';
+
+                // Chart bars height
+                document.querySelectorAll('.chart-bar').forEach(bar => {
+                    bar.style.height = bar.getAttribute('style').match(/--target-h:\s*([^;]+)/)[1];
+                });
+
+                // Pie chart fade
+                document.getElementById('pie-chart').style.opacity = '1';
+
+            }, 100);
+        });
+
+
+        // === TOGGLE LOGIC: OVERVIEW vs NETWORK ===
+        const btnOverview = document.getElementById('toggle-overview');
+        const btnNetwork = document.getElementById('toggle-network');
+        const act4 = document.getElementById('act4-network');
+
+        // Helper: check if we're in dark mode
+        function isDarkMode() {
+            return document.body.classList.contains('dark-mode');
+        }
+
+        btnNetwork.addEventListener('click', () => {
+            // UI Toggle States
+            btnNetwork.classList.remove('text-slate-500', 'hover:text-slate-800');
+            btnNetwork.classList.add('bg-white', 'shadow-sm', 'text-slate-900');
+            btnOverview.classList.remove('bg-white', 'shadow-sm', 'text-slate-900');
+            btnOverview.classList.add('text-slate-500', 'hover:text-slate-800');
+
+            // Theme switch: Only apply dark nav theme if in dark mode
+            if (isDarkMode()) {
+                document.getElementById('body-container').classList.remove('cream-bg');
+                document.getElementById('body-container').classList.add('black-bg');
+                document.getElementById('logo').classList.add('text-cream');
+                navLinksArr.forEach(link => link.classList.add('text-slate-300'));
+            }
+
+            // View switch
+            act2.style.display = 'none';
+            act2ui.style.display = 'none';
+            act3.style.display = 'none';
+
+            act4.classList.remove('hidden');
+            currentMode = 'network';
+
+            // Init Network if not already
+            if (!window.networkInited) initNetwork();
+        });
+
+        btnOverview.addEventListener('click', () => {
+            // UI Toggle States
+            btnOverview.classList.remove('text-slate-500', 'hover:text-slate-800');
+            btnOverview.classList.add('bg-white', 'shadow-sm', 'text-slate-900');
+            btnNetwork.classList.remove('bg-white', 'shadow-sm', 'text-slate-900');
+            btnNetwork.classList.add('text-slate-500', 'hover:text-slate-800');
+
+            // Theme switch: Restore appropriate theme
+            document.getElementById('body-container').classList.remove('black-bg');
+            document.getElementById('body-container').classList.add('cream-bg');
+            document.getElementById('logo').classList.remove('text-cream');
+            navLinksArr.forEach(link => link.classList.remove('text-slate-300'));
+
+            // View switch
+            act4.classList.add('hidden');
+
+            act3.style.display = 'block'; // Ensure we go back to stats page as Overview
+            currentMode = 'overview';
+        });
+
+        // === ACT 4: NETWORK CANVAS PHYSICS ===
+        function initNetwork() {
+            window.networkInited = true;
+            const canvas = document.getElementById('network-canvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('network-container');
+
+            let width = container.clientWidth;
+            let height = container.clientHeight;
+
+            // High DPI support
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            // Node data setup
+            const nodes = [];
+            const NUM_NODES = 150;
+            const STANCES = ['neutral', 'support', 'oppose'];
+
+            // Attractors
+            const attractors = {
+                'support': { x: width * 0.8, y: height * 0.5 },
+                'oppose': { x: width * 0.2, y: height * 0.5 },
+                'neutral': { x: width * 0.5, y: height * 0.5 }
+            };
+
+            // Background/Decision data pool
+            const professions = ["Teacher", "Small Business Owner", "Software Engineer", "Service Worker", "Retired Teacher", "Student", "Healthcare Worker", "Plumber", "Freelancer"];
+            const driversSupport = ["Anticipates lower living costs.", "Believes policy improves public transit access.", "Hopes for neighborhood revitalization.", "Values the environmental components."];
+            const driversOppose = ["Fears increased property taxes.", "Worried about local business disruption.", "Skeptical of government efficiency.", "Dislikes the zoning restrictions."];
+            const driversNeutral = ["Waiting for more information.", "Policy doesn't impact them directly.", "Evaluating competing claims.", "Focused on other local issues."];
+
+            for (let i = 0; i < NUM_NODES; i++) {
+                // Initial mostly neutral
+                const st = Math.random() > 0.3 ? 'neutral' : (Math.random() > 0.5 ? 'support' : 'oppose');
+
+                // Assign narrative data
+                const isStationaryNeutral = (st === 'neutral' && Math.random() > 0.8); // 20% of neutrals are anchors
+                const prof = professions[Math.floor(Math.random() * professions.length)];
+                let decis = driversNeutral[Math.floor(Math.random() * driversNeutral.length)];
+                if (st === 'support') decis = driversSupport[Math.floor(Math.random() * driversSupport.length)];
+                if (st === 'oppose') decis = driversOppose[Math.floor(Math.random() * driversOppose.length)];
+
+                nodes.push({
+                    id: i,
+                    name: `Agent ${100 + i}`,
+                    x: width / 2 + (Math.random() - 0.5) * 100,
+                    y: height / 2 + (Math.random() - 0.5) * 100,
+                    vx: 0,
+                    vy: 0,
+                    stance: st,
+                    inf: Math.random() * 0.6 + 0.2, // influence/size
+                    neighbors: [],
+                    history: [],
+                    rippleRadius: 0,
+                    isAnchor: isStationaryNeutral, // Stays in the very middle
+                    backgroundData: `${prof}, resident for ${Math.floor(Math.random() * 20 + 1)} yrs.`,
+                    decisionData: decis
+                });
+            }
+
+            // Create fake edges
+            for (let i = 0; i < NUM_NODES; i++) {
+                const numEdges = 1 + Math.floor(Math.random() * 3);
+                for (let e = 0; e < numEdges; e++) {
+                    const targetIdx = Math.floor(Math.random() * NUM_NODES);
+                    if (targetIdx !== i && !nodes[i].neighbors.includes(targetIdx)) {
+                        nodes[i].neighbors.push(targetIdx);
+                    }
+                }
+            }
+
+            // Setup Fence Sitters initial list
+            const fenceSittersContainer = document.getElementById('branch-neutral');
+            fenceSittersContainer.innerHTML = ''; // clear holding baseline
+            let addedSitters = 0;
+            nodes.forEach(n => {
+                if (n.stance === 'neutral' && addedSitters < 12) {
+                    const el = document.createElement('div');
+                    el.className = 'text-[10px] text-slate-400 opacity-60 font-mono tracking-tighter fade-in slide-in-right';
+                    el.innerText = `[WAITING] ${n.name}`;
+                    fenceSittersContainer.appendChild(el);
+                    addedSitters++;
+                }
+            });
+
+            // Drift Logic
+            let driftEvents = 0;
+            const liveDriftCount = document.getElementById('live-drift-count');
+
+            setInterval(() => {
+                if (currentMode !== 'network') return;
+
+                // Find a mutable neutral node and mutate it
+                const neutrals = nodes.filter(n => n.stance === 'neutral' && !n.isAnchor);
+                if (neutrals.length > 0) {
+                    const node = neutrals[Math.floor(Math.random() * neutrals.length)];
+                    const newStance = Math.random() > 0.5 ? 'support' : 'oppose';
+
+                    node.stance = newStance;
+                    node.rippleRadius = 1; // start ripple
+
+                    // Update their decision driver narrative
+                    node.decisionData = newStance === 'support'
+                        ? driversSupport[Math.floor(Math.random() * driversSupport.length)]
+                        : driversOppose[Math.floor(Math.random() * driversOppose.length)];
+
+                    // Add kick velocity
+                    const attr = attractors[newStance];
+                    const angle = Math.atan2(attr.y - node.y, attr.x - node.x);
+                    node.vx += Math.cos(angle) * 15;
+                    node.vy += Math.sin(angle) * 15;
+
+                    driftEvents++;
+                    liveDriftCount.innerText = driftEvents;
+
+                    // Add to Tree UI
+                    addDriftEventToTree(node.name, newStance);
+                }
+            }, 800);
+
+            function addDriftEventToTree(name, stance) {
+                const containerId = stance === 'support' ? 'branch-support' : 'branch-oppose';
+                const container = document.getElementById(containerId);
+
+                const el = document.createElement('div');
+                el.className = 'flex justify-between items-center text-xs slide-in-right bg-slate-800/50 p-2 rounded';
+
+                const colorHtml = stance === 'support' ? '<span class="text-teal-400">Support</span>' : '<span class="text-orange-400">Opposed</span>';
+                el.innerHTML = `<span class="text-white">${name} drifted</span> ${colorHtml}`;
+
+                container.prepend(el);
+
+                // Limit size
+                if (container.children.length > 8) {
+                    container.removeChild(container.lastChild);
+                }
+            }
+
+            // Colors for drawing
+            const C_SUPPORT = '20, 184, 166';
+            const C_OPPOSE = '249, 115, 22';
+            const C_NEUTRAL = '148, 163, 184';
+
+            function getColorRgb(stance) {
+                if (stance === 'support') return C_SUPPORT;
+                if (stance === 'oppose') return C_OPPOSE;
+                return C_NEUTRAL;
+            }
+
+            // Hover state
+            let hoveredNodeId = -1;
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+
+                hoveredNodeId = -1;
+                for (let n of nodes) {
+                    const r = 3 + n.inf * 6;
+                    const dx = mx - n.x;
+                    const dy = my - n.y;
+                    if (dx * dx + dy * dy < (r * 2) * (r * 2)) { // forgiving hitbox
+                        hoveredNodeId = n.id;
+
+                        // Update tooltip
+                        const tt = document.getElementById('node-tooltip');
+                        tt.classList.remove('hidden');
+                        tt.style.left = n.x + 'px';
+                        tt.style.top = n.y + 'px';
+
+                        document.getElementById('tt-name').innerText = n.name + (n.isAnchor ? ' (Anchor)' : '');
+                        document.getElementById('tt-stance').innerText = n.stance.charAt(0).toUpperCase() + n.stance.slice(1);
+                        document.getElementById('tt-stance').className = n.stance === 'support' ? 'text-teal-400 font-bold' : (n.stance === 'oppose' ? 'text-orange-400 font-bold' : 'text-slate-400 font-bold');
+                        document.getElementById('tt-bg').innerText = n.backgroundData;
+                        document.getElementById('tt-decision').innerText = `"${n.decisionData}"`;
+                        document.getElementById('tt-inf').innerText = n.inf.toFixed(2);
+
+                        break;
+                    }
+                }
+
+                if (hoveredNodeId === -1) {
+                    document.getElementById('node-tooltip').classList.add('hidden');
+                }
+            });
+
+            // Physics loop
+            function updateNetwork() {
+                if (currentMode !== 'network') {
+                    requestAnimationFrame(updateNetwork);
+                    return;
+                }
+
+                const lightMode = !document.body.classList.contains('dark-mode');
+
+                // Fill canvas background based on theme
+                if (lightMode) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                } else {
+                    ctx.clearRect(0, 0, width, height);
+                }
+
+                // 1. Physics update
+                for (let i = 0; i < nodes.length; i++) {
+                    const n1 = nodes[i];
+
+                    // Attractor force
+                    let attr = attractors[n1.stance];
+
+                    // If it is an anchor neutral, forcibly pull to center strongly
+                    if (n1.isAnchor) {
+                        attr = { x: width * 0.5, y: height * 0.5 };
+                    }
+
+                    const dx = attr.x - n1.x;
+                    const dy = attr.y - n1.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 0) {
+                        // pull strength (anchors resist being pushed)
+                        const pull = n1.isAnchor ? 0.2 : 0.05;
+                        n1.vx += (dx / dist) * pull;
+                        n1.vy += (dy / dist) * pull;
+                    }
+
+                    // Repulsion force
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const n2 = nodes[j];
+                        const dx2 = n2.x - n1.x;
+                        const dy2 = n2.y - n1.y;
+                        const dist2sq = dx2 * dx2 + dy2 * dy2;
+
+                        // repel
+                        const minD = 25;
+                        if (dist2sq > 0 && dist2sq < minD * minD) {
+                            const dist2 = Math.sqrt(dist2sq);
+                            const force = (minD - dist2) / minD * 0.1;
+                            const fx = (dx2 / dist2) * force;
+                            const fy = (dy2 / dist2) * force;
+
+                            n1.vx -= fx; n1.vy -= fy;
+                            n2.vx += fx; n2.vy += fy;
+                        }
+                    }
+
+                    // Dampening
+                    n1.vx *= 0.9;
+                    n1.vy *= 0.9;
+
+                    n1.x += n1.vx;
+                    n1.y += n1.vy;
+
+                    // History for trails
+                    if (Math.abs(n1.vx) > 0.1 || Math.abs(n1.vy) > 0.1) {
+                        n1.history.push({ x: n1.x, y: n1.y });
+                        if (n1.history.length > 10) n1.history.shift();
+                    } else if (n1.history.length > 0 && Math.random() > 0.5) {
+                        n1.history.shift();
+                    }
+
+                    // Ripple expansion
+                    if (n1.rippleRadius > 0) {
+                        n1.rippleRadius += 0.5;
+                        if (n1.rippleRadius > 30) n1.rippleRadius = 0;
+                    }
+                }
+
+                // 2. Draw Edges
+                ctx.lineWidth = 0.5;
+                for (let n of nodes) {
+                    const rgb = getColorRgb(n.stance);
+
+                    // Only draw edges if hovered, or general low opacity
+                    const isHovered = (n.id === hoveredNodeId);
+
+                    for (let targetIdx of n.neighbors) {
+                        const target = nodes[targetIdx];
+
+                        const isTargetHovered = (targetIdx === hoveredNodeId);
+
+                        if (hoveredNodeId !== -1 && !isHovered && !isTargetHovered) {
+                            ctx.strokeStyle = lightMode ? `rgba(0,0,0, 0.03)` : `rgba(255,255,255, 0.02)`;
+                        } else if (isHovered || isTargetHovered) {
+                            ctx.strokeStyle = lightMode ? `rgba(0,0,0, 0.6)` : `rgba(255,255,255, 0.8)`;
+                            ctx.lineWidth = 1.5;
+                        } else {
+                            ctx.strokeStyle = `rgba(${rgb}, ${lightMode ? '0.25' : '0.15'})`;
+                            ctx.lineWidth = 0.5;
+                        }
+
+                        ctx.beginPath();
+                        ctx.moveTo(n.x, n.y);
+                        ctx.lineTo(target.x, target.y);
+                        ctx.stroke();
+                    }
+                }
+
+                // 3. Draw Nodes
+                for (let n of nodes) {
+                    const r = 3 + n.inf * 6;
+                    const rgb = getColorRgb(n.stance);
+
+                    // Trails
+                    if (n.history.length > 2) {
+                        ctx.beginPath();
+                        ctx.moveTo(n.history[0].x, n.history[0].y);
+                        for (let i = 1; i < n.history.length; i++) {
+                            ctx.lineTo(n.history[i].x, n.history[i].y);
+                        }
+                        ctx.strokeStyle = `rgba(${rgb}, 0.2)`;
+                        ctx.lineWidth = r / 2;
+                        ctx.lineCap = 'round';
+                        ctx.stroke();
+                    }
+
+                    // Ripple
+                    if (n.rippleRadius > 0) {
+                        ctx.beginPath();
+                        ctx.arc(n.x, n.y, n.rippleRadius, 0, Math.PI * 2);
+                        const alpha = 1 - (n.rippleRadius / 30);
+                        ctx.strokeStyle = lightMode ? `rgba(0,0,0, ${alpha * 0.5})` : `rgba(255,255,255, ${alpha})`;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
+
+                    // Body
+                    const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r);
+
+                    // Gray hollow look for neutral anchor balls
+                    if (n.isAnchor) {
+                        grad.addColorStop(0, `rgba(100, 116, 139, 0.4)`);
+                        grad.addColorStop(0.8, `rgba(100, 116, 139, 0.8)`);
+                        grad.addColorStop(1, `rgba(100, 116, 139, 0)`);
+                    } else {
+                        grad.addColorStop(0, lightMode ? '#1e293b' : '#fff');
+                        grad.addColorStop(0.3, `rgb(${rgb})`);
+                        grad.addColorStop(1, `rgba(${rgb}, 0)`);
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, r * 1.5, 0, Math.PI * 2);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+
+                    // Anchor outer solid ring 
+                    if (n.isAnchor) {
+                        ctx.beginPath();
+                        ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+                        ctx.strokeStyle = `rgba(148, 163, 184, 0.8)`;
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    }
+
+                    // Hover outer ring
+                    if (n.id === hoveredNodeId) {
+                        ctx.beginPath();
+                        ctx.arc(n.x, n.y, r * 2, 0, Math.PI * 2);
+                        ctx.strokeStyle = lightMode ? '#1e293b' : '#fff';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+
+                requestAnimationFrame(updateNetwork);
+            }
+
+            updateNetwork();
+
+            // Resize logic
+            window.addEventListener('resize', () => {
+                if (currentMode === 'network') {
+                    width = container.clientWidth;
+                    height = container.clientHeight;
+                    canvas.width = width * dpr;
+                    canvas.height = height * dpr;
+                    ctx.scale(dpr, dpr);
+
+                    attractors.support.x = width * 0.8;
+                    attractors.support.y = height * 0.5;
+                    attractors.oppose.x = width * 0.2;
+                    attractors.oppose.y = height * 0.5;
+                    attractors.neutral.x = width * 0.5;
+                    attractors.neutral.y = height * 0.5;
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
