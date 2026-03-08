@@ -1,6 +1,6 @@
-# BISVHacks
+# MarGIN - Marginalization Generative Information Network
 
-A policy-impact and marginalization-spread toolkit. It lets you (1) **predict how a described person would react to a policy question** (beneficial vs. damaging), and (2) **simulate how marginalization or “damage” propagates** through a population of socioeconomic archetypes connected by similarity and influence.
+A policy-impact and marginalization-spread toolkit. It lets you (1) **predict how a described agent would react to a policy question** (beneficial vs. damaging), and (2) **simulate how marginalization or “damage” propagates** through a large population of **agents** (on the order of 10,000–100,000) connected by similarity and influence. Each entity in part 1 is an **agent**; the marginalization simulation is designed to run on tens of thousands of such agents (using archetypes was a temporary solution during development).
 
 ---
 
@@ -10,10 +10,10 @@ A policy-impact and marginalization-spread toolkit. It lets you (1) **predict ho
 
 Given:
 
-- A **text description** of a person (e.g. demographics, income, housing, health, employment), and  
+- A **text description** of an **agent** (e.g. demographics, income, housing, health, employment), and  
 - A **policy question** (e.g. “What impact would a universal healthcare expansion have on you?”),
 
-the system outputs a **2D alignment vector** `[sim_to_beneficial, sim_to_damaging]` indicating how much the predicted “answer” aligns with “beneficial to me” vs “damaging to me.”
+the system outputs a **2D alignment vector** `[sim_to_beneficial, sim_to_damaging]` indicating how much the predicted “answer” aligns with “beneficial to me” vs “damaging to me.” Each such entity is an **agent**; the same agent representation is used to populate the marginalization simulation.
 
 **How it works:**
 
@@ -26,18 +26,18 @@ So: **description + policy question → persona blend → predicted answer embed
 
 ### 2. Marginalization spread network
 
-A second part of the project simulates **how “damage” or marginalization spreads** through a population of archetypes.
+A second part of the project simulates **how “damage” or marginalization spreads** through a **large population of agents**—on the order of **10,000–100,000 agents**. (Using a smaller set of archetypes in the codebase was a temporary solution; the simulation is designed for this agent-scale population.)
 
-- **Nodes**: Each archetype is a node with:
+- **Nodes**: Each node is an **agent** with:
   - **Vulnerability** (0–1): derived from profile dimensions (e.g. health insurance, housing stability, legal vulnerability, exposure to discrimination, financial resilience). Higher = more vulnerable.
-  - **Influence** (dimension 101): how much this node’s state affects others (high / moderate / low).
-  - **Persona vector**: 384D, used to compute **similarity** between nodes.
-- **Edges**: Similarity between two nodes is **cosine similarity** of their persona vectors, then scaled and optionally passed through a **logistic** so it sits in a usable band. Edge weight **A → B** = `influence[A] × f(similarity(A, B))`.
-- **Effect**: The **effect on node B** from current damage on all nodes is:  
+  - **Influence** (dimension 101): how much this agent’s state affects others (high / moderate / low).
+  - **Persona vector**: 384D, used to compute **similarity** between agents.
+- **Edges**: Similarity between two agents is **cosine similarity** of their persona vectors, then scaled and optionally passed through a **logistic** so it sits in a usable band. Edge weight **A → B** = `influence[A] × f(similarity(A, B))`.
+- **Effect**: The **effect on agent B** from current damage on all agents is:  
   `effect[B] = Σ_A ( damage[A] × vulnerability[B] × weight(A→B) )`, with damage/effect clipped to [-1, 1]. So damage spreads according to who is influential, who is similar, and who is vulnerable.
-- **Propagation**: You can run **one step** (effect from current damage) or **multiple steps** (cascading), with options for how damage accumulates (e.g. replace vs add). The API can return the **most affected** nodes or **all affected** with attributes (vulnerability, influence, incoming weight, etc.).
+- **Propagation**: You can run **one step** (effect from current damage) or **multiple steps** (cascading), with options for how damage accumulates (e.g. replace vs add). The API can return the **most affected** agents or **all affected** with attributes (vulnerability, influence, incoming weight, etc.).
 
-So: **archetypes + persona vectors + vulnerability + influence → similarity & weights → given initial damage, compute effect and optionally cascade.**
+So: **10k–100k agents** (persona vectors + vulnerability + influence) → similarity & weights → given initial damage, compute effect and optionally cascade.
 
 ---
 
@@ -125,7 +125,7 @@ BISVHacks/
    )
    net.load()
 
-   # One-step effect from some initial damage vector (one value per archetype)
+   # One-step effect from some initial damage vector (one value per agent)
    import numpy as np
    damage = np.zeros(net.n_nodes)
    damage[0] = 0.8  # Example: one node heavily damaged
@@ -141,7 +141,7 @@ BISVHacks/
 
 ## Summary
 
-- **Policy side**: Turn a **text description** and a **policy question** into a **beneficial vs. damaging** alignment by mapping the description to a blend of learned persona vectors and predicting an answer embedding, then projecting it onto beneficial/damaging axes.
-- **Network side**: Simulate **how damage or marginalization propagates** across a population of socioeconomic archetypes using persona similarity, influence, and vulnerability, with one-step or multi-step propagation and helpers to list the most (or all) affected groups.
+- **Policy side**: Turn a **text description** of an **agent** and a **policy question** into a **beneficial vs. damaging** alignment by mapping the description to a blend of learned persona vectors and predicting an answer embedding, then projecting it onto beneficial/damaging axes.
+- **Network side**: Simulate **how damage or marginalization propagates** across a **large population of agents** (10k–100k) using persona similarity, influence, and vulnerability, with one-step or multi-step propagation and helpers to list the most (or all) affected agents.
 
-Together, this supports analyzing policy impact for described personas and studying spillover of marginalization across similar and vulnerable groups in a structured population model.
+Together, this supports analyzing policy impact for described agents and studying spillover of marginalization across similar and vulnerable groups at scale. (The current code may still use archetype data as a temporary stand-in for the full agent population.)
