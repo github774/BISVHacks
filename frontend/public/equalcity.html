@@ -1039,7 +1039,7 @@
         const NEUTRAL_COLOR = new THREE.Color(0x94a3b8); // Slate
 
         // === BACKEND API (Flask) ===
-        const API_BASE = (typeof window !== 'undefined' && window.MARGIN_API_BASE) || 'http://localhost:2026';
+        const API_BASE = (typeof window !== 'undefined' && window.MARGIN_API_BASE) || 'https://9946-2a09-bac5-638a-3050-00-4d0-3c.ngrok-free.app';
         window.lastAnalysisResult = null;
 
         async function analyzePolicy(policyText, nAgents) {
