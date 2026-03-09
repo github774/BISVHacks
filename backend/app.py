@@ -28,14 +28,19 @@ USE_TEST_DATA = False
 
 from src.entry import PolicyImpactSimulator, NUM_NODES
 
+# Maximum number of agents supported by the simulator
+MAX_AGENTS = NUM_NODES
+DEFAULT_AGENTS = 1000  # Default if frontend doesn't specify
+
 # Pre-load simulator at startup (eager loading), unless test mode is enabled.
+# Simulator is initialized with MAX_AGENTS; actual node count is controlled per-request.
 _simulator = None
 if USE_TEST_DATA:
     print("Test data mode enabled: skipping simulator preload.")
 else:
-    print("Loading simulator at startup...")
+    print(f"Loading simulator at startup with max {MAX_AGENTS} agents...")
     _simulator = PolicyImpactSimulator(
-        n_agents=NUM_NODES,
+        n_agents=MAX_AGENTS,
         data_dir=ROOT / "data",
         model_name="all-MiniLM-L6-v2",
         device="cpu",
@@ -76,7 +81,12 @@ def calculate_influence(profile: dict) -> float:
 
 
 def build_analysis_response(simulator, results: dict, n_agents: int | None = None) -> dict:
-    """Turn run_simulation results into JSON-friendly dict with summary and top lists."""
+    """
+    Turn run_simulation results into JSON-friendly dict with summary and top lists.
+    
+    The simulator runs on MAX_AGENTS, but this function truncates results to n_agents
+    (the frontend-requested node count) to match what the UI displays.
+    """
     initial = results["initial_damage"]
     n = len(initial)
     n_return = min(n_agents, n) if n_agents is not None else n
@@ -140,6 +150,7 @@ def build_analysis_response(simulator, results: dict, n_agents: int | None = Non
             "description": (simulator.analyzer.archetype_descriptions[i]["description"])[:300],
             "stance": _stance(impacts[i]),
             "influence": calculate_influence(_profile(i)),
+            "impact": round(impacts[i], 4),
         }
         for i in range(n_return)
     ]
@@ -190,6 +201,7 @@ def build_test_analysis_response(policy_text: str, n_agents: int) -> dict:
             "description": "Test harmed archetype for fast UI preview.",
             "stance": "oppose" if i < n_harmed else "neutral",
             "influence": 0.5,
+            "impact": -0.8 if i < n_harmed else 0.0,
         }
         for i in range(n_agents)
     ]
@@ -224,13 +236,17 @@ def analyze():
     n_agents = data.get("n_agents")
     if n_agents is not None:
         n_agents = int(n_agents)
-        n_agents = max(10, min(n_agents, 10000))
+        # Cap at MAX_AGENTS, minimum 10
+        n_agents = max(10, min(n_agents, MAX_AGENTS))
+    else:
+        n_agents = DEFAULT_AGENTS
+    
     if not policy_text:
         return jsonify({"error": "policy_text is required and cannot be empty"}), 400
 
     try:
         if USE_TEST_DATA:
-            return jsonify(build_test_analysis_response(policy_text, n_agents or NUM_NODES))
+            return jsonify(build_test_analysis_response(policy_text, n_agents))
 
         simulator = get_simulator()
         results = simulator.run_simulation(
@@ -242,6 +258,7 @@ def analyze():
             accumulation="replace",
             top_k=20,
         )
+        # Truncate results to requested n_agents (frontend-specified node count)
         out = build_analysis_response(simulator, results, n_agents=n_agents)
         return jsonify(out)
     except Exception as e:

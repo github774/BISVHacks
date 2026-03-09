@@ -531,7 +531,6 @@
                 Console</a>
             <a href="#" id="nav-results"
                 class="text-teal-600 hover:text-teal-400 font-bold transition-colors">Results</a>
-            <a href="#" class="text-teal-800 hover:text-teal-600 font-bold transition-colors">Sign In</a>
             <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
                 <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1148,10 +1147,8 @@
                 el('act3-ai-finding').textContent = 'Most benefited (net impact ' + data.most_benefited[0].net_impact + '): ' + d + (d.length >= 140 ? '...' : '');
             }
 
-            // Update building colors to match backend percentages
-            if (typeof window.updateSentiment === 'function') {
-                window.updateSentiment(s.pct_support || 0, s.pct_oppose || 0);
-            }
+            // Note: Building colors are already applied during simulation and should persist when switching views.
+            // Do NOT call updateSentiment() here as it resets all building colors to their initial state.
             buildSentimentTimelinePaths(window.sentimentTimelineData);
         }
 
@@ -1223,16 +1220,20 @@
             setCreamTheme();
             act1.style.display = 'flex';
             act1.classList.remove('fade-out');
+            act2.style.display = 'none';
             act2.style.opacity = '0';
             act2.style.pointerEvents = 'none';
+            act2ui.style.display = 'none';
             act2ui.style.opacity = '0';
             act3.style.display = 'none';
             const act4 = document.getElementById('act4-network');
             if (act4) act4.classList.add('hidden');
+            viewToggle.classList.add('hidden');
         });
 
         navConsole.addEventListener('click', (e) => {
             e.preventDefault();
+            if (!window.lastAnalysisResult) return; // Block until policy data is loaded
             setCreamTheme();
             act1.style.display = 'none';
             act2.style.display = 'block';
@@ -1243,21 +1244,30 @@
             act3.style.display = 'none';
             const act4 = document.getElementById('act4-network');
             if (act4) act4.classList.add('hidden');
+            viewToggle.classList.add('hidden');
+            // Trigger canvas resize when becoming visible
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
             if (typeof startSimulation === 'function' && !isSimulating) startSimulation();
         });
 
         navResults.addEventListener('click', (e) => {
             e.preventDefault();
+            if (!window.lastAnalysisResult) return; // Block until policy data is loaded
             setCreamTheme();
             act1.style.display = 'none';
+            act2.style.display = 'none';
             act2.style.opacity = '0';
             act2.style.pointerEvents = 'none';
+            act2ui.style.display = 'none';
             act2ui.style.opacity = '0';
             act3.style.display = 'block';
             renderAct3FromBackend(window.lastAnalysisResult);
             const act4 = document.getElementById('act4-network');
             if (act4) act4.classList.add('hidden');
 
+            // Show view toggle (Overview/Network tabs) same as View Analytics Dash button
+            viewToggle.classList.remove('hidden');
+            
             document.getElementById('toggle-overview').click(); // ensure overview tab active
         });
 
@@ -1778,7 +1788,9 @@
         jumpBtn.addEventListener('click', () => {
             // Hide the city and UI
             act2.style.display = 'none';
+            act2.style.opacity = '0';
             act2ui.style.display = 'none';
+            act2ui.style.opacity = '0';
             document.getElementById('body-container').classList.remove('black-bg');
             document.getElementById('body-container').classList.add('cream-bg');
             document.getElementById('logo').classList.remove('text-cream');
@@ -1861,6 +1873,7 @@
             act3.style.display = 'none';
 
             act4.classList.remove('hidden');
+            act4.style.display = 'flex';
             currentMode = 'network';
 
             // Init Network if not already
@@ -1882,6 +1895,7 @@
 
             // View switch
             act4.classList.add('hidden');
+            act4.style.display = 'none';
 
             act3.style.display = 'block'; // Ensure we go back to stats page as Overview
             currentMode = 'overview';
@@ -1931,6 +1945,7 @@
                 const st = descObj && descObj.stance ? descObj.stance : (impact >= th ? 'support' : (impact <= -th ? 'oppose' : 'neutral'));
                 const desc = descObj ? descObj.description : '';
                 const infVal = descObj && typeof descObj.influence === 'number' ? descObj.influence : (0.2 + Math.random() * 0.6);
+                const impactVal = descObj && typeof descObj.impact === 'number' ? descObj.impact : impact;
                 const isStationaryNeutral = (st === 'neutral' && Math.random() > 0.8);
                 const prof = professions[Math.floor(Math.random() * professions.length)];
                 let decis = driversNeutral[Math.floor(Math.random() * driversNeutral.length)];
@@ -1946,6 +1961,7 @@
                     vy: 0,
                     stance: st,
                     inf: infVal,
+                    impact: impactVal,
                     neighbors: [],
                     history: [],
                     rippleRadius: 0,
@@ -2145,7 +2161,10 @@
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist > 0) {
                         // pull strength (anchors resist being pushed)
-                        const pull = n1.isAnchor ? 0.2 : 0.05;
+                        let pull = n1.isAnchor ? 0.2 : 0.05;
+                        // Scale pull strength by impact magnitude: 0 impact has base pull, higher magnitude moves faster
+                        const impactMagnitude = Math.abs(n1.impact || 0);
+                        pull *= (1 + impactMagnitude);
                         n1.vx += (dx / dist) * pull;
                         n1.vy += (dy / dist) * pull;
                     }
