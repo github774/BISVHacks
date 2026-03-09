@@ -153,60 +153,104 @@ def gen_agents(num_agents) -> list[Agent]:
     return agents
 
 def build_agent_description(agent: Agent) -> str:
-    """Generate 3-sentence description from agent attributes."""
+    """Generate comprehensive description from all 100 agent attributes."""
     def _format_val(val: str) -> str:
         return str(val).replace("_", " ").replace("–", "-")
     
     # Convert attrs to int-keyed dict for easier access
     p = {int(k): v for k, v in agent.attrs.items()}
     
-    # Sentence 1: Demographics, employment, and immigration
-    income = _format_val(p.get(1, "unknown"))
-    employment = _format_val(p.get(6, "unknown"))
-    industry = _format_val(p.get(7, "unknown"))
-    education = _format_val(p.get(3, "unknown"))
-    age = _format_val(p.get(11, "unknown"))
-    gender = _format_val(p.get(12, "unknown"))
-    ethnicity = _format_val(p.get(14, "unknown"))
-    immigration = _format_val(p.get(15, "unknown"))
-    language_prof = _format_val(p.get(18, "unknown"))
-    primary_lang = _format_val(p.get(19, "unknown"))
-
+    # Economic Profile (1-10)
     s1 = (
-        f"This person has {income} income, works {employment} in the {industry} industry "
-        f"with {education} education, and is in the {age} age group, {gender}. "
-        f"They are {ethnicity} ethnicity, {immigration} immigration status, speak {primary_lang} "
-        f"as primary language with {language_prof} proficiency in English."
+        f"Economic: {_format_val(p.get(1, 'unknown'))} income, {_format_val(p.get(2, 'unknown'))} wealth, "
+        f"{_format_val(p.get(3, 'unknown'))} education. Works in {_format_val(p.get(4, 'unknown'))} sector, "
+        f"{_format_val(p.get(5, 'unknown'))} employment stability, {_format_val(p.get(6, 'unknown'))} employment type, "
+        f"{_format_val(p.get(7, 'unknown'))} industry, {_format_val(p.get(8, 'unknown'))} job seniority, "
+        f"{_format_val(p.get(9, 'unknown'))} union membership, {_format_val(p.get(10, 'unknown'))} career mobility."
     )
-
-    # Sentence 2: Family, housing, and health
-    marital = _format_val(p.get(21, "unknown"))
-    household = _format_val(p.get(22, "unknown"))
-    housing = _format_val(p.get(41, "unknown"))
-    housing_afford = _format_val(p.get(43, "unknown"))
-    health_ins = _format_val(p.get(35, "unknown"))
-    health_access = _format_val(p.get(36, "unknown"))
-
+    
+    # Demographics (11-20)
     s2 = (
-        f"They are {marital} with a household of {household}, live as a {housing} "
-        f"with {housing_afford} costs, and have {health_ins} health insurance with "
-        f"{health_access} healthcare access."
+        f"Demographics: {_format_val(p.get(11, 'unknown'))} age, {_format_val(p.get(12, 'unknown'))} gender, "
+        f"{_format_val(p.get(13, 'unknown'))} orientation, {_format_val(p.get(14, 'unknown'))} ethnicity, "
+        f"{_format_val(p.get(15, 'unknown'))} immigration status, born in {_format_val(p.get(16, 'unknown'))}, "
+        f"{_format_val(p.get(17, 'unknown'))} years since immigration, {_format_val(p.get(18, 'unknown'))} language proficiency, "
+        f"speaks {_format_val(p.get(19, 'unknown'))} primarily, {_format_val(p.get(20, 'unknown'))} cultural integration."
     )
-
-    # Sentence 3: Geography, context, and vulnerability
-    geography = _format_val(p.get(51, "unknown"))
-    internet = _format_val(p.get(58, "unknown"))
-    isolation = _format_val(p.get(76, "unknown"))
-    discrimination = _format_val(p.get(84, "unknown"))
-    automation = _format_val(p.get(88, "unknown"))
-
+    
+    # Family (21-30)
     s3 = (
-        f"They reside in a {geography} area with {internet} internet, experience "
-        f"{isolation} social isolation, face {discrimination} exposure to discrimination, "
-        f"and have {automation} automation risk in their line of work."
+        f"Family: {_format_val(p.get(21, 'unknown'))} marital status, household of {_format_val(p.get(22, 'unknown'))}, "
+        f"{_format_val(p.get(23, 'unknown'))} children, {_format_val(p.get(24, 'unknown'))} single parent status, "
+        f"{_format_val(p.get(25, 'unknown'))} elder dependents, {_format_val(p.get(26, 'unknown'))} household income diversity, "
+        f"{_format_val(p.get(27, 'unknown'))} household stability, {_format_val(p.get(28, 'unknown'))} childcare access, "
+        f"{_format_val(p.get(29, 'unknown'))} family wealth support, {_format_val(p.get(30, 'unknown'))} intergenerational mobility."
     )
-
-    return f"{s1} {s2} {s3}"
+    
+    # Health (31-40)
+    s4 = (
+        f"Health: {_format_val(p.get(31, 'unknown'))} physical health, {_format_val(p.get(32, 'unknown'))} mental health, "
+        f"{_format_val(p.get(33, 'unknown'))} chronic illness, {_format_val(p.get(34, 'unknown'))} disability status, "
+        f"{_format_val(p.get(35, 'unknown'))} health insurance, {_format_val(p.get(36, 'unknown'))} healthcare access, "
+        f"{_format_val(p.get(37, 'unknown'))} healthcare affordability, {_format_val(p.get(38, 'unknown'))} substance abuse risk, "
+        f"{_format_val(p.get(39, 'unknown'))} life expectancy risk, {_format_val(p.get(40, 'unknown'))} preventive care usage."
+    )
+    
+    # Housing/Environment (41-50)
+    s5 = (
+        f"Housing: {_format_val(p.get(41, 'unknown'))} housing status, {_format_val(p.get(42, 'unknown'))} housing stability, "
+        f"{_format_val(p.get(43, 'unknown'))} housing affordability, {_format_val(p.get(44, 'unknown'))} neighborhood income, "
+        f"{_format_val(p.get(45, 'unknown'))} neighborhood safety, {_format_val(p.get(46, 'unknown'))} housing quality, "
+        f"{_format_val(p.get(47, 'unknown'))} pollution exposure, {_format_val(p.get(48, 'unknown'))} green space access, "
+        f"{_format_val(p.get(49, 'unknown'))} disaster risk, {_format_val(p.get(50, 'unknown'))} infrastructure quality."
+    )
+    
+    # Geography/Infrastructure (51-60)
+    s6 = (
+        f"Geography: {_format_val(p.get(51, 'unknown'))} geography, {_format_val(p.get(52, 'unknown'))} population density, "
+        f"{_format_val(p.get(53, 'unknown'))} regional economic growth, {_format_val(p.get(54, 'unknown'))} transportation access, "
+        f"{_format_val(p.get(55, 'unknown'))} commute time, {_format_val(p.get(56, 'unknown'))} public transit access, "
+        f"{_format_val(p.get(57, 'unknown'))} distance to employment centers, {_format_val(p.get(58, 'unknown'))} internet access, "
+        f"{_format_val(p.get(59, 'unknown'))} local job availability, {_format_val(p.get(60, 'unknown'))} local cost of living."
+    )
+    
+    # Access to Services (61-70)
+    s7 = (
+        f"Services: {_format_val(p.get(61, 'unknown'))} quality school access, {_format_val(p.get(62, 'unknown'))} higher education access, "
+        f"{_format_val(p.get(63, 'unknown'))} job training access, {_format_val(p.get(64, 'unknown'))} legal representation access, "
+        f"{_format_val(p.get(65, 'unknown'))} social services access, {_format_val(p.get(66, 'unknown'))} banking access, "
+        f"{_format_val(p.get(67, 'unknown'))} credit access, {_format_val(p.get(68, 'unknown'))} political representation, "
+        f"{_format_val(p.get(69, 'unknown'))} voting access, {_format_val(p.get(70, 'unknown'))} government trust."
+    )
+    
+    # Social Capital (71-80)
+    s8 = (
+        f"Social: {_format_val(p.get(71, 'unknown'))} social network size, {_format_val(p.get(72, 'unknown'))} community support, "
+        f"{_format_val(p.get(73, 'unknown'))} religious participation, {_format_val(p.get(74, 'unknown'))} civic participation, "
+        f"{_format_val(p.get(75, 'unknown'))} volunteer engagement, {_format_val(p.get(76, 'unknown'))} social isolation, "
+        f"{_format_val(p.get(77, 'unknown'))} informal economic support, {_format_val(p.get(78, 'unknown'))} mentorship access, "
+        f"{_format_val(p.get(79, 'unknown'))} professional network, {_format_val(p.get(80, 'unknown'))} community leadership role."
+    )
+    
+    # Vulnerability/Power (81-90)
+    s9 = (
+        f"Vulnerability: {_format_val(p.get(81, 'unknown'))} job security, {_format_val(p.get(82, 'unknown'))} income volatility, "
+        f"{_format_val(p.get(83, 'unknown'))} legal vulnerability, {_format_val(p.get(84, 'unknown'))} discrimination exposure, "
+        f"{_format_val(p.get(85, 'unknown'))} policing exposure, {_format_val(p.get(86, 'unknown'))} workplace power, "
+        f"{_format_val(p.get(87, 'unknown'))} workplace safety, {_format_val(p.get(88, 'unknown'))} automation risk, "
+        f"{_format_val(p.get(89, 'unknown'))} financial literacy, {_format_val(p.get(90, 'unknown'))} financial resilience."
+    )
+    
+    # Digital/Future (91-100)
+    s10 = (
+        f"Digital: {_format_val(p.get(91, 'unknown'))} digital literacy, {_format_val(p.get(92, 'unknown'))} computer access, "
+        f"{_format_val(p.get(93, 'unknown'))} smartphone access, {_format_val(p.get(94, 'unknown'))} online information exposure, "
+        f"{_format_val(p.get(95, 'unknown'))} media diversity, {_format_val(p.get(96, 'unknown'))} misinformation exposure, "
+        f"{_format_val(p.get(97, 'unknown'))} remote work capability, {_format_val(p.get(98, 'unknown'))} online professional presence, "
+        f"{_format_val(p.get(99, 'unknown'))} digital economy participation, {_format_val(p.get(100, 'unknown'))} AI/automation skill exposure."
+    )
+    
+    return f"{s1} {s2} {s3} {s4} {s5} {s6} {s7} {s8} {s9} {s10}"
 
 
 def agent_enc(agents: list[Agent], device: str = "mps") -> list[Agent]:

@@ -1013,7 +1013,7 @@
         const NEUTRAL_COLOR = new THREE.Color(0x94a3b8); // Slate
 
         // === BACKEND API (Flask) ===
-        const API_BASE = (typeof window !== 'undefined' && window.MARGIN_API_BASE) || 'http://localhost:5000';
+        const API_BASE = (typeof window !== 'undefined' && window.MARGIN_API_BASE) || 'http://localhost:2026';
         window.lastAnalysisResult = null;
 
         async function analyzePolicy(policyText) {
@@ -1053,6 +1053,11 @@
                 const d = (data.most_benefited[0].description || '').slice(0, 140);
                 el('act3-ai-finding').textContent = 'Most benefited (net impact ' + data.most_benefited[0].net_impact + '): ' + d + (d.length >= 140 ? '...' : '');
             }
+
+            // Update building colors to match backend percentages
+            if (typeof window.updateSentiment === 'function') {
+                window.updateSentiment(s.pct_support || 0, s.pct_oppose || 0);
+            }
         }
 
         // === ACT 1 TO ACT 2 TRANSITION ===
@@ -1076,6 +1081,8 @@
                     btnSimulate.disabled = true;
                     const data = await analyzePolicy(policyText);
                     window.lastAnalysisResult = data;
+                    // Populate the UI with backend results immediately
+                    renderAct3FromBackend(data);
                 } catch (e) {
                     alert('Analysis failed: ' + (e.message || 'Unknown error'));
                     if (label) label.textContent = 'Initialize Simulation';
@@ -1215,6 +1222,12 @@
         const buildings = [];
         const citySize = 200;
 
+        function targetColorForStance(stance) {
+            if (stance === 'support') return new THREE.Color(0x06b6d4);
+            if (stance === 'oppose') return new THREE.Color(0xf97316);
+            return new THREE.Color(0x94a3b8);
+        }
+
         // Materials setup
         // The core is nearly invisible, acting like a faint volume
         const baseBuildingMat = new THREE.MeshPhongMaterial({
@@ -1288,11 +1301,8 @@
 
             mesh.position.set(x, h / 2, z);
 
-            // Dedicated zones to ensure grey block stands out
-            let stance = 'neutral';
-            if (x > 25) stance = Math.random() > 0.15 ? 'support' : 'neutral';
-            else if (x < -25) stance = Math.random() > 0.15 ? 'oppose' : 'neutral';
-            else stance = 'neutral'; // solid grey block in the middle
+            // Initial neutral stance; backend percentages are applied deterministically via updateSentiment.
+            const stance = 'neutral';
 
             buildings.push({
                 mesh: mesh,
@@ -1300,13 +1310,77 @@
                 stance,
                 startColor: new THREE.Color(0x051e3e),
                 // Exaggerated bright neon colors for Hologram
-                targetColor: stance === 'support' ? new THREE.Color(0x06b6d4) : (stance === 'oppose' ? new THREE.Color(0xf97316) : new THREE.Color(0x94a3b8)),
+                targetColor: targetColorForStance(stance),
                 changed: false,
                 dist: distFromCenter
             });
 
             scene.add(mesh);
         }
+
+        // Assign stances/colors from backend percentages with zero RNG.
+        window.updateSentiment = function updateSentiment(supportPct, opposePct) {
+            const total = buildings.length;
+            if (!total) return;
+
+            const s = Math.max(0, Math.min(100, Number(supportPct) || 0));
+            const o = Math.max(0, Math.min(100, Number(opposePct) || 0));
+            const n = Math.max(0, 100 - s - o);
+
+            let supportCount = Math.round((s / 100) * total);
+            let opposeCount = Math.round((o / 100) * total);
+
+            // Keep counts valid if rounding or bad inputs over-allocate nodes.
+            if (supportCount + opposeCount > total) {
+                const overflow = (supportCount + opposeCount) - total;
+                if (opposeCount >= overflow) opposeCount -= overflow;
+                else {
+                    supportCount = Math.max(0, supportCount - (overflow - opposeCount));
+                    opposeCount = 0;
+                }
+            }
+
+            const byRight = buildings
+                .map((b, i) => ({ i, x: b.mesh.position.x }))
+                .sort((a, b) => b.x - a.x);
+
+            const stances = new Array(total).fill('neutral');
+
+            for (let i = 0; i < supportCount; i++) {
+                stances[byRight[i].i] = 'support';
+            }
+
+            const byLeftRemaining = byRight
+                .filter((item) => stances[item.i] === 'neutral')
+                .sort((a, b) => a.x - b.x);
+
+            for (let i = 0; i < opposeCount && i < byLeftRemaining.length; i++) {
+                stances[byLeftRemaining[i].i] = 'oppose';
+            }
+
+            buildings.forEach((b, idx) => {
+                const stance = stances[idx];
+                b.stance = stance;
+                b.targetColor = targetColorForStance(stance);
+                b.changed = false;
+
+                // Reset visuals so a new simulation run starts from a clean baseline.
+                b.mesh.material.color.set(0x051e3e);
+                b.mesh.material.emissive.set(0x051e3e);
+                b.mesh.material.opacity = 0.2;
+                b.mesh.material.emissiveIntensity = 0.2;
+                b.line.material.color.set(0x22d3ee);
+                b.line.material.opacity = 0.15;
+            });
+
+            revealedSupport = 0;
+            revealedOppose = 0;
+            revealedNeutral = 0;
+
+            document.getElementById('sent-support').innerText = Math.round(s) + '%';
+            document.getElementById('sent-oppose').innerText = Math.round(o) + '%';
+            document.getElementById('sent-neutral').innerText = Math.round(n) + '%';
+        };
 
         // Policy Wave Ring
         const waveGeo = new THREE.TorusGeometry(1, 0.5, 16, 100);
@@ -1368,6 +1442,14 @@
 
         function startSimulation() {
             isSimulating = true;
+            
+            // Apply backend sentiment data to buildings NOW (before wave starts)
+            if (window.lastAnalysisResult && window.lastAnalysisResult.summary) {
+                const s = window.lastAnalysisResult.summary;
+                if (typeof window.updateSentiment === 'function') {
+                    window.updateSentiment(s.pct_support || 0, s.pct_oppose || 0);
+                }
+            }
 
             // Captions
             document.getElementById('caption-1').style.opacity = '1';
@@ -1406,9 +1488,8 @@
             }, 2000);
         }
 
-        // Live updating UI sentiments
-        let sCount = 0, oCount = 0;
-        const sTarget = 48, oTarget = 29;
+        // Live updating UI sentiments — real counts from buildings
+        let revealedSupport = 0, revealedOppose = 0, revealedNeutral = 0;
 
         function animateCity() {
             requestAnimationFrame(animateCity);
@@ -1488,13 +1569,19 @@
                     if (!b.changed && b.dist < policyWave.radius) {
                         b.changed = true;
 
-                        // Fake sentiment tally
-                        if (b.stance === 'support' && sCount < sTarget) sCount += 2;
-                        if (b.stance === 'oppose' && oCount < oTarget) oCount += 1.5;
+                        // Real sentiment tally from actual building stances (already set by updateSentiment)
+                        if (b.stance === 'support') revealedSupport++;
+                        else if (b.stance === 'oppose') revealedOppose++;
+                        else revealedNeutral++;
 
-                        document.getElementById('sent-support').innerText = Math.floor(sCount) + '%';
-                        document.getElementById('sent-oppose').innerText = Math.floor(oCount) + '%';
-                        document.getElementById('sent-neutral').innerText = Math.max(0, 100 - Math.floor(sCount) - Math.floor(oCount)) + '%';
+                        const totalRevealed = revealedSupport + revealedOppose + revealedNeutral;
+                        const sPct = Math.round((revealedSupport / totalRevealed) * 100);
+                        const oPct = Math.round((revealedOppose / totalRevealed) * 100);
+                        const nPct = 100 - sPct - oPct;
+
+                        document.getElementById('sent-support').innerText = sPct + '%';
+                        document.getElementById('sent-oppose').innerText = oPct + '%';
+                        document.getElementById('sent-neutral').innerText = nPct + '%';
                     }
 
                     if (b.changed) {
@@ -1518,6 +1605,15 @@
                     }
                 });
             }
+
+            // Building color lerp — runs every frame so updateSentiment() transitions work anytime
+            buildings.forEach(b => {
+                if (b.changed) {
+                    b.mesh.material.color.lerp(b.targetColor, 0.05);
+                    b.mesh.material.emissive.lerp(b.targetColor, 0.05);
+                    b.line.material.color.lerp(b.targetColor, 0.1);
+                }
+            });
 
             // Animate Data Particles (Rising streams)
             const positions = particleSystem.geometry.attributes.position.array;

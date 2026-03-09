@@ -19,14 +19,14 @@ from typing import Optional
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from predict_policy_answer import predict_policy_answer
+from src.predict_policy_answer import predict_policy_answer
 
 # Add parent directory to path to import network module
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from network.network import MarginalizationNetwork
 
 # Configuration constants
-NUM_NODES = 5  # Number of agents to generate
+NUM_NODES = 100  # Number of agents to generate
 BENEFIT_TUNING = 1.0  # Multiplier for benefit in net impact calculation
 DAMAGE_TUNING = 1.0  # Multiplier for damage in net impact calculation
 

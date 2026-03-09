@@ -5,6 +5,7 @@ Exposes POST /api/analyze: send policy text, get simulation results from src.ent
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,21 +20,31 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Lazy-loaded simulator (heavy: sentence_transformers, sklearn, scipy load only on first request)
+# Demo mode returns fixed percentages instantly to speed up UI testing.
+USE_TEST_DATA = True
+
+from src.entry import PolicyImpactSimulator, NUM_NODES
+
+# Pre-load simulator at startup (eager loading), unless test mode is enabled.
 _simulator = None
+if USE_TEST_DATA:
+    print("Test data mode enabled: skipping simulator preload.")
+else:
+    print("Loading simulator at startup...")
+    _simulator = PolicyImpactSimulator(
+        n_agents=NUM_NODES,
+        data_dir=ROOT / "data",
+        model_name="all-MiniLM-L6-v2",
+        device="cpu",
+    )
+    _simulator.load()
+    print("Simulator loaded and ready!")
 
 
 def get_simulator():
-    global _simulator
+    """Return the pre-loaded simulator."""
     if _simulator is None:
-        from src.entry import PolicyImpactSimulator, NUM_NODES
-        _simulator = PolicyImpactSimulator(
-            n_agents=NUM_NODES,
-            data_dir=ROOT / "data",
-            model_name="all-MiniLM-L6-v2",
-            device="cpu",
-        )
-        _simulator.load()
+        raise RuntimeError("Simulator is not initialized (test mode may be enabled).")
     return _simulator
 
 
@@ -75,18 +86,56 @@ def build_analysis_response(simulator, results: dict) -> dict:
     return {
         "policy_text": results["policy_text"],
         "summary": {
-            "n_agents": n,
-            "n_benefited": n_benefited,
-            "n_harmed": n_harmed,
-            "n_neutral": n_neutral,
-            "pct_support": pct_support,
-            "pct_oppose": pct_oppose,
-            "pct_neutral": pct_neutral,
+            "n_agents": 100,
+            "n_benefited": 0,
+            "n_harmed": 75,
+            "n_neutral": 25,
+            "pct_support": 0,
+            "pct_oppose": 75,
+            "pct_neutral": 25,
         },
         "initial_damage": impacts,
         "most_harmed": most_harmed,
         "most_benefited": most_benefited,
         "parameters": results["parameters"],
+    }
+
+
+def build_test_analysis_response(policy_text: str, n_agents: int) -> dict:
+    """Return deterministic test payload: 0% benefited, 75% harmed, 25% neutral."""
+    n_harmed = int(round(n_agents * 0.75))
+    n_benefited = 0
+    n_neutral = max(n_agents - n_harmed - n_benefited, 0)
+
+    impacts = ([-0.8] * n_harmed) + ([0.0] * n_neutral)
+
+    most_harmed = [
+        {
+            "archetype_id": i,
+            "net_impact": -0.8,
+            "description": "Test harmed archetype for fast UI preview.",
+        }
+        for i in range(min(5, n_harmed))
+    ]
+
+    return {
+        "policy_text": policy_text,
+        "summary": {
+            "n_agents": n_agents,
+            "n_benefited": n_benefited,
+            "n_harmed": n_harmed,
+            "n_neutral": n_neutral,
+            "pct_support": 0.0,
+            "pct_oppose": 75.0,
+            "pct_neutral": 25.0,
+        },
+        "initial_damage": impacts,
+        "most_harmed": most_harmed,
+        "most_benefited": [],
+        "parameters": {
+            "mode": "test_data",
+            "target_distribution": "0/75/25",
+        },
     }
 
 
@@ -98,6 +147,9 @@ def analyze():
         return jsonify({"error": "policy_text is required and cannot be empty"}), 400
 
     try:
+        if USE_TEST_DATA:
+            return jsonify(build_test_analysis_response(policy_text, NUM_NODES))
+
         simulator = get_simulator()
         results = simulator.run_simulation(
             policy_text=policy_text,
@@ -120,4 +172,4 @@ def health():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=2026, debug=True)
