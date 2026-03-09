@@ -702,7 +702,13 @@
 
     <!-- ACT 3: RESULTS DASHBOARD -->
     <div id="act3-results" class="min-h-screen bg-cream pb-20 pt-10 px-6 md:px-12 w-full max-w-7xl mx-auto">
-        <h2 class="text-3xl font-bold mb-8">Simulation Outcomes</h2>
+        <h2 class="text-3xl font-bold mb-4">Simulation Outcomes</h2>
+
+        <!-- Policy at top (populated from backend) -->
+        <div id="act3-policy-card" class="mb-8 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+            <div class="text-xs font-semibold text-teal-600 uppercase tracking-wider mb-2">Policy</div>
+            <div id="act3-policy-text" class="text-slate-700 leading-relaxed"></div>
+        </div>
 
         <!-- Stats Row (populated from backend) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
@@ -1117,6 +1123,9 @@
             if (!data || !data.summary) return;
             const s = data.summary;
             const el = (id) => document.getElementById(id);
+            if (el('act3-policy-text') && data.policy_text) {
+                el('act3-policy-text').textContent = data.policy_text;
+            }
             if (el('stat-agents')) { el('stat-agents').textContent = s.n_agents; el('stat-agents').dataset.target = s.n_agents; }
             if (el('stat-support')) { el('stat-support').textContent = s.n_benefited; el('stat-support').dataset.target = s.n_benefited; }
             if (el('stat-oppose')) { el('stat-oppose').textContent = s.n_harmed; el('stat-oppose').dataset.target = s.n_harmed; }
@@ -1916,8 +1925,12 @@
 
             for (let i = 0; i < NUM_NODES; i++) {
                 const impact = impacts[i] != null ? impacts[i] : 0;
-                const st = impact > 0.05 ? 'support' : (impact < -0.05 ? 'oppose' : 'neutral');
-                const desc = descriptions[i] ? descriptions[i].description : '';
+                const descObj = descriptions[i];
+                const th = (window.lastAnalysisResult && typeof window.lastAnalysisResult.neutral_threshold === 'number')
+                ? window.lastAnalysisResult.neutral_threshold : 0.2;
+                const st = descObj && descObj.stance ? descObj.stance : (impact >= th ? 'support' : (impact <= -th ? 'oppose' : 'neutral'));
+                const desc = descObj ? descObj.description : '';
+                const infVal = descObj && typeof descObj.influence === 'number' ? descObj.influence : (0.2 + Math.random() * 0.6);
                 const isStationaryNeutral = (st === 'neutral' && Math.random() > 0.8);
                 const prof = professions[Math.floor(Math.random() * professions.length)];
                 let decis = driversNeutral[Math.floor(Math.random() * driversNeutral.length)];
@@ -1932,7 +1945,7 @@
                     vx: 0,
                     vy: 0,
                     stance: st,
-                    inf: 0.2 + Math.random() * 0.6,
+                    inf: infVal,
                     neighbors: [],
                     history: [],
                     rippleRadius: 0,

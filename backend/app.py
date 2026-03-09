@@ -44,11 +44,35 @@ else:
     print("Simulator loaded and ready!")
 
 
+# Neutral band: impact in [-NEUTRAL_THRESHOLD, NEUTRAL_THRESHOLD] is neutral
+NEUTRAL_THRESHOLD = 0.15
+
+
 def get_simulator():
     """Return the pre-loaded simulator."""
     if _simulator is None:
         raise RuntimeError("Simulator is not initialized (test mode may be enabled).")
     return _simulator
+
+
+def calculate_influence(profile: dict) -> float:
+    """Same logic as scripts/add_influence.py: composite score from profile attrs, 0-100."""
+    def get_score(val, mapping, default=1):
+        if not val:
+            return default
+        return mapping.get(str(val).lower(), default)
+
+    score = 0
+    score += get_score(profile.get("1", ""), {"very high": 5, "high": 4, "moderate": 3, "low": 2, "very low": 1, "none": 0}, 1)
+    score += get_score(profile.get("2", ""), {"high": 5, "moderate": 3, "limited": 2, "none": 1}, 1)
+    score += get_score(profile.get("3", ""), {"post-grad": 5, "college": 4, "high school": 2, "none": 1}, 1)
+    score += get_score(profile.get("8", ""), {"executive": 5, "senior": 4, "mid-career": 3, "entry-level": 2, "none": 1}, 1)
+    score += get_score(profile.get("68", ""), {"high": 5, "moderate": 3, "low": 1}, 1)
+    score += get_score(profile.get("71", ""), {"large": 5, "medium": 3, "small": 1}, 1)
+    score += get_score(profile.get("80", ""), {"formal": 5, "informal": 3, "none": 1}, 1)
+    # Max possible is 35; return 0-1 for frontend
+    normalized = (score / 35.0)
+    return round(normalized, 4)
 
 
 def build_analysis_response(simulator, results: dict, n_agents: int | None = None) -> dict:
@@ -59,8 +83,9 @@ def build_analysis_response(simulator, results: dict, n_agents: int | None = Non
     # Net impact: positive = benefit, negative = harm
     impacts_full = [float(x) for x in initial]
     impacts = impacts_full[:n_return]
-    n_benefited = sum(1 for x in impacts if x > 0)
-    n_harmed = sum(1 for x in impacts if x < 0)
+    # Neutral: -NEUTRAL_THRESHOLD < impact < NEUTRAL_THRESHOLD; support: >=; oppose: <=
+    n_benefited = sum(1 for x in impacts if x >= NEUTRAL_THRESHOLD)
+    n_harmed = sum(1 for x in impacts if x <= -NEUTRAL_THRESHOLD)
     total = max(len(impacts), 1)
 
     # Add 1-5% random noise to support and oppose; neutral absorbs remainder so counts sum to total
@@ -96,8 +121,26 @@ def build_analysis_response(simulator, results: dict, n_agents: int | None = Non
         for i, imp in indexed[-top_k:][::-1]
     ]
 
+    def _stance(imp: float) -> str:
+        if imp >= NEUTRAL_THRESHOLD:
+            return "support"
+        if imp <= -NEUTRAL_THRESHOLD:
+            return "oppose"
+        return "neutral"
+
+    def _profile(i: int) -> dict:
+        if i < len(simulator.network.agents):
+            a = simulator.network.agents[i]
+            return {str(k): str(v) for k, v in a.attrs.items()}
+        return {}
+
     agent_descriptions = [
-        {"archetype_id": i, "description": (simulator.analyzer.archetype_descriptions[i]["description"])[:300]}
+        {
+            "archetype_id": i,
+            "description": (simulator.analyzer.archetype_descriptions[i]["description"])[:300],
+            "stance": _stance(impacts[i]),
+            "influence": calculate_influence(_profile(i)),
+        }
         for i in range(n_return)
     ]
 
@@ -117,6 +160,7 @@ def build_analysis_response(simulator, results: dict, n_agents: int | None = Non
         "most_harmed": most_harmed,
         "most_benefited": most_benefited,
         "parameters": results["parameters"],
+        "neutral_threshold": NEUTRAL_THRESHOLD,
     }
 
 
@@ -141,7 +185,12 @@ def build_test_analysis_response(policy_text: str, n_agents: int) -> dict:
     ]
 
     agent_descriptions = [
-        {"archetype_id": i, "description": "Test harmed archetype for fast UI preview."}
+        {
+            "archetype_id": i,
+            "description": "Test harmed archetype for fast UI preview.",
+            "stance": "oppose" if i < n_harmed else "neutral",
+            "influence": 0.5,
+        }
         for i in range(n_agents)
     ]
 
@@ -164,6 +213,7 @@ def build_test_analysis_response(policy_text: str, n_agents: int) -> dict:
             "mode": "test_data",
             "target_distribution": "0/75/25",
         },
+        "neutral_threshold": NEUTRAL_THRESHOLD,
     }
 
 
