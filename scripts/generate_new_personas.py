@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Generate 1000 NEW personality descriptions (not in existing archetypes) with:
-- 10 unique policy questions (3 positive, 3 negative, 3 neutral, 1 chained)
-- 10 answers tailored to their situation
+- ~8-sentence descriptions covering all 100 attributes
+- 6 unique policy questions (3 positive, 3 negative)
+- 6 answers tailored to their situation
 - 384D embeddings for descriptions, questions, and answers
 
 Output: data/new_personas.json
@@ -33,43 +34,24 @@ def _format_val(val: str) -> str:
     return str(val).replace("_", " ").replace("–", "-")
 
 
-def build_description(profile: dict) -> str:
-    """Generate 3-sentence description from profile."""
-    p = {int(k): v for k, v in profile.items()}
-    income = _format_val(p.get(1, "unknown"))
-    employment = _format_val(p.get(6, "unknown"))
-    industry = _format_val(p.get(7, "unknown"))
-    education = _format_val(p.get(3, "unknown"))
-    age = _format_val(p.get(11, "unknown"))
-    gender = _format_val(p.get(12, "unknown"))
-    marital = _format_val(p.get(21, "unknown"))
-    household = _format_val(p.get(22, "unknown"))
-    housing = _format_val(p.get(41, "unknown"))
-    housing_afford = _format_val(p.get(43, "unknown"))
-    health_ins = _format_val(p.get(35, "unknown"))
-    health_access = _format_val(p.get(36, "unknown"))
-    geography = _format_val(p.get(51, "unknown"))
-    internet = _format_val(p.get(58, "unknown"))
-    isolation = _format_val(p.get(76, "unknown"))
-    discrimination = _format_val(p.get(84, "unknown"))
-    automation = _format_val(p.get(88, "unknown"))
-    community = _format_val(p.get(72, "unknown"))
+def _get(p: dict, i: int) -> str:
+    return _format_val(p.get(i, "unknown"))
 
-    s1 = (
-        f"This person has {income} income, works {employment} in the {industry} industry "
-        f"with {education} education, and is in the {age} age group, {gender}."
-    )
-    s2 = (
-        f"They are {marital} with a household of {household}, live as a {housing} "
-        f"with {housing_afford} costs, and have {health_ins} health insurance with "
-        f"{health_access} healthcare access."
-    )
-    s3 = (
-        f"They reside in a {geography} area with {internet} internet, experience "
-        f"{isolation} social isolation, face {discrimination} exposure to discrimination, "
-        f"and have {automation} automation risk in their line of work."
-    )
-    return f"{s1} {s2} {s3}"
+
+def build_description(profile: dict) -> str:
+    """Generate compact description covering all 100 attributes, under 250 tokens."""
+    p = {int(k): v for k, v in profile.items()}
+    parts = [
+        f"{_get(p, 1)} income, {_get(p, 2)} wealth, {_get(p, 3)}. {_get(p, 4)} sector, {_get(p, 6)} {_get(p, 7)}, {_get(p, 5)}, {_get(p, 8)}, {_get(p, 9)} union, {_get(p, 10)} mobility.",
+        f"{_get(p, 11)}, {_get(p, 12)}, {_get(p, 13)}, {_get(p, 14)}. {_get(p, 15)}, {_get(p, 16)}, {_get(p, 17)}, {_get(p, 18)} English, {_get(p, 19)}, {_get(p, 20)}.",
+        f"{_get(p, 21)}, {_get(p, 22)} hh, {_get(p, 23)} kids, {_get(p, 24)} single parent, {_get(p, 25)} elders, {_get(p, 26)}, {_get(p, 27)}, {_get(p, 28)} childcare, {_get(p, 29)}, {_get(p, 30)}.",
+        f"{_get(p, 31)} physical, {_get(p, 32)} mental, {_get(p, 33)} chronic, {_get(p, 34)}. {_get(p, 35)} ins, {_get(p, 36)} access, {_get(p, 37)}, {_get(p, 38)} substance, {_get(p, 39)} life risk, {_get(p, 40)}.",
+        f"{_get(p, 41)}, {_get(p, 42)}, {_get(p, 43)}. Nbr: {_get(p, 44)}, {_get(p, 45)}, {_get(p, 46)}, {_get(p, 47)} poll, {_get(p, 48)} green, {_get(p, 49)}, {_get(p, 50)}. {_get(p, 51)} {_get(p, 52)}, {_get(p, 53)}, {_get(p, 54)}, {_get(p, 55)}, {_get(p, 56)} transit, {_get(p, 57)}.",
+        f"{_get(p, 58)} net, {_get(p, 59)} jobs, {_get(p, 60)} COL. {_get(p, 61)} schools, {_get(p, 62)} college, {_get(p, 63)} train, {_get(p, 64)} legal, {_get(p, 65)}. {_get(p, 66)} bank, {_get(p, 67)} credit, {_get(p, 68)} rep, {_get(p, 69)} vote, {_get(p, 70)} trust.",
+        f"{_get(p, 71)} net, {_get(p, 72)} community, {_get(p, 73)} relig, {_get(p, 74)} civic, {_get(p, 75)} volunteer, {_get(p, 76)} isolation. {_get(p, 77)} informal, {_get(p, 78)} mentor, {_get(p, 79)} prof, {_get(p, 80)}. {_get(p, 81)} security, {_get(p, 82)} volatility, {_get(p, 83)} legal, {_get(p, 84)} discrim, {_get(p, 85)}. {_get(p, 86)} power, {_get(p, 87)} safe, {_get(p, 88)} autom, {_get(p, 89)} fin, {_get(p, 90)}.",
+        f"{_get(p, 91)} digital, {_get(p, 92)} comp, {_get(p, 93)} phone, {_get(p, 94)} online, {_get(p, 95)} media, {_get(p, 96)}. {_get(p, 97)} remote, {_get(p, 98)} presence, {_get(p, 99)} econ, {_get(p, 100)} AI.",
+    ]
+    return " ".join(parts)
 
 
 def sample_archetype(rng: random.Random) -> dict[int, str]:
@@ -130,8 +112,12 @@ def main():
         arch_dict = {k: v for k, v in profile.items()}
         arch_rng = random.Random(SEED_NEW + i)
         descriptions.append(build_description(arch_dict))
-        questions, metadata = generate_questions_for_archetype(i, arch_rng)
-        answers = generate_answers_for_archetype(arch_dict, metadata, arch_rng)
+        questions, metadata = generate_questions_for_archetype(
+            i, arch_rng, include_neutral_chained=False
+        )
+        answers = generate_answers_for_archetype(
+            arch_dict, metadata, arch_rng, include_neutral_chained=False
+        )
         all_questions.append(questions)
         all_answers.append(answers)
 
@@ -142,11 +128,11 @@ def main():
     print("Embedding questions...")
     q_flat = [q for p in all_questions for q in p]
     q_embs = encoder.encode(q_flat, convert_to_numpy=True)
-    q_embs = q_embs.reshape(len(personas), 10, -1)
+    q_embs = q_embs.reshape(len(personas), 6, -1)
     print("Embedding answers...")
     a_flat = [a for p in all_answers for a in p]
     a_embs = encoder.encode(a_flat, convert_to_numpy=True)
-    a_embs = a_embs.reshape(len(personas), 10, -1)
+    a_embs = a_embs.reshape(len(personas), 6, -1)
 
     result = []
     for i in range(len(personas)):

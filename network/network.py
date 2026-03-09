@@ -17,7 +17,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from genagents import gen_agents, agent_enc, Agent
+from genagents import gen_agents, agent_enc, load_agents_from_archetypes_json, Agent
 
 
 # ---------------------------------------------------------------------------
@@ -384,9 +384,11 @@ class MarginalizationNetwork:
         self,
         n_agents: Optional[int] = None,
         use_generated: bool = True,
+        use_archetypes_json: bool = False,
         device: str = "cpu",
         archetypes_path: Optional[str | Path] = None,
         persona_vectors_path: Optional[str | Path] = None,
+        archetype_descriptions_path: Optional[str | Path] = None,
         similarity_threshold: Optional[float] = None,
         logistic_k: float = 1.0,
         logistic_x0: float = 0.5,
@@ -406,9 +408,11 @@ class MarginalizationNetwork:
         """
         self.n_agents = n_agents
         self.use_generated = use_generated
+        self.use_archetypes_json = use_archetypes_json
         self.device = device
         self.archetypes_path = Path(archetypes_path) if archetypes_path else None
         self.persona_vectors_path = Path(persona_vectors_path) if persona_vectors_path else None
+        self.archetype_descriptions_path = Path(archetype_descriptions_path) if archetype_descriptions_path else None
         self.similarity_threshold = similarity_threshold
         self.logistic_k = logistic_k
         self.logistic_x0 = logistic_x0
@@ -425,7 +429,21 @@ class MarginalizationNetwork:
 
     def load(self) -> None:
         """Generate or load data and build vulnerability, influence, similarity, weights."""
-        if self.use_generated:
+        if self.use_archetypes_json:
+            # Load agents by randomly sampling from archetypes.json
+            if self.n_agents is None:
+                raise ValueError("n_agents must be specified when use_archetypes_json=True")
+            data_dir = self.archetypes_path.parent if self.archetypes_path else ROOT / "data"
+            arch_path = self.archetypes_path or data_dir / "archetypes.json"
+            desc_path = self.archetype_descriptions_path or data_dir / "archetype_descriptions.json"
+            pers_path = self.persona_vectors_path or data_dir / "persona_vectors.json"
+            print(f"Loading {self.n_agents} agents from archetypes.json (random sample)...")
+            self.agents = load_agents_from_archetypes_json(
+                self.n_agents, arch_path, desc_path, pers_path,
+            )
+            self.archetypes = agents_to_archetypes(self.agents)
+            self._vectors = agents_to_persona_matrix(self.agents)
+        elif self.use_generated:
             # Generate agents
             if self.n_agents is None:
                 raise ValueError("n_agents must be specified when use_generated=True")

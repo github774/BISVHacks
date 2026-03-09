@@ -321,6 +321,50 @@ def agent_enc(agents: list[Agent], device: str = "mps") -> list[Agent]:
     return agents
 
 
+def load_agents_from_archetypes_json(
+    n_agents: int,
+    archetypes_path: Path | str,
+    archetype_descriptions_path: Path | str,
+    persona_vectors_path: Path | str,
+    seed: int = 42,
+) -> list[Agent]:
+    """
+    Load n_agents by randomly sampling from archetypes.json.
+    Uses archetype_descriptions.json and persona_vectors.json for embeddings.
+    """
+    archetypes_path = Path(archetypes_path)
+    archetype_descriptions_path = Path(archetype_descriptions_path)
+    persona_vectors_path = Path(persona_vectors_path)
+
+    with open(archetypes_path, encoding="utf-8") as f:
+        data = load(f)
+    archetypes = data["archetypes"]
+
+    with open(archetype_descriptions_path, encoding="utf-8") as f:
+        descs = {d["archetype_id"]: d for d in load(f)}
+
+    with open(persona_vectors_path, encoding="utf-8") as f:
+        personas = {p["archetype_id"]: p["persona_vector"] for p in load(f)}
+
+    rng = Random(seed)
+    sampled = rng.sample(archetypes, min(n_agents, len(archetypes)))
+    if len(sampled) < n_agents:
+        print(f"Warning: Only {len(sampled)} archetypes available, requested {n_agents}")
+
+    agents = []
+    for i, arch in enumerate(sampled):
+        aid = arch["archetype_id"]
+        agent = Agent(i)
+        agent.attrs = {str(k): str(v) for k, v in arch["profile"].items()}
+        agent.desc_str = descs[aid]["description"]
+        agent.desc_emb = np.array(descs[aid]["embedding"], dtype=np.float32)
+        agent.persona_v = np.array(personas[aid], dtype=np.float64)
+        agents.append(agent)
+
+    print(f"Loaded {len(agents)} agents from archetypes.json (random sample, seed={seed})")
+    return agents
+
+
 if __name__ == "__main__":
     # Generate and encode agents
     print("Generating agents...")

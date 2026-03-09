@@ -1,33 +1,32 @@
 """
-Predict policy answer alignment: [sim_to_beneficial, sim_to_damaging].
+Predict policy answer alignment: [beneficial, damaging] via SentimentHead.
 
 Input: description string, policy question string.
-Output: 2D vector [beneficial, damaging] as python list.
+Output: 2D vector [beneficial, damaging] = [good, bad] from SentimentHead [neg, pos].
 """
 
 from pathlib import Path
 from typing import Optional
 
 import torch
-import torch.nn.functional as F
 
 ROOT = Path(__file__).resolve().parent.parent
 
 _ENCODER = None
 _MODEL = None
-_BEN_EMB = None
-_DAM_EMB = None
+_SENTIMENT_HEAD = None
 
 
 def _load_resources(
     data_dir: Optional[Path] = None,
     model_path: Optional[Path] = None,
 ) -> None:
-    global _ENCODER, _MODEL, _BEN_EMB, _DAM_EMB
+    global _ENCODER, _MODEL, _SENTIMENT_HEAD
     if _ENCODER is not None:
         return
     from sentence_transformers import SentenceTransformer
     from answer_predictor import AnswerPredictor
+    from sentiment_head import SentimentHead
 
     data_dir = data_dir or ROOT / "data"
     model_path = model_path or data_dir / "answer_predictor.pt"
@@ -38,13 +37,11 @@ def _load_resources(
     _MODEL.load_state_dict(torch.load(model_path, map_location=device))
     _MODEL.eval()
 
-    ben_raw = _ENCODER.encode("This policy is beneficial to me.", convert_to_numpy=True)
-    dam_raw = _ENCODER.encode("This policy is damaging to me.", convert_to_numpy=True)
-    ben = F.normalize(torch.tensor(ben_raw, dtype=torch.float32, device=device), p=2, dim=0)
-    dam_raw_t = F.normalize(torch.tensor(dam_raw, dtype=torch.float32, device=device), p=2, dim=0)
-    dam = F.normalize(dam_raw_t - (dam_raw_t @ ben) * ben, p=2, dim=0)
-    _BEN_EMB = ben
-    _DAM_EMB = dam
+    _SENTIMENT_HEAD = SentimentHead().to(device)
+    sent_path = data_dir / "sentiment_head.pt"
+    if sent_path.exists():
+        _SENTIMENT_HEAD.load_state_dict(torch.load(sent_path, map_location=device))
+    _SENTIMENT_HEAD.eval()
 
 
 def encode_policy(policy_question: str) -> torch.Tensor:
@@ -97,8 +94,6 @@ def predict_policy_answer(
 
     with torch.inference_mode():
         out = _MODEL(q_t, persona_t)
-        emb_n = F.normalize(out, p=2, dim=-1)
-        sim_ben = (emb_n @ _BEN_EMB).item()
-        sim_dam = (emb_n @ _DAM_EMB).item()
-
-    return [float(sim_ben), float(sim_dam)]
+        print(out)
+        sent = _SENTIMENT_HEAD(out)  # [bad, good] = [neg, pos]
+    return [float(sent[0, 1].item()), float(sent[0, 0].item())]  # [beneficial, damaging] = [good, bad]

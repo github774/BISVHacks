@@ -19,16 +19,20 @@ from typing import Optional
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from src.predict_policy_answer import predict_policy_answer
+import torch
+import torch.nn.functional as F
+
+from predict_policy_answer import _load_resources
+from preprocessor import _get_mps_data, preprocess_batched_mps_preloaded
 
 # Add parent directory to path to import network module
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from network.network import MarginalizationNetwork
 
 # Configuration constants
-NUM_NODES = 100  # Number of agents to generate
+NUM_NODES = 1000  # Number of agents to generate
 BENEFIT_TUNING = 1.0  # Multiplier for benefit in net impact calculation
-DAMAGE_TUNING = 1.0  # Multiplier for damage in net impact calculation
+DAMAGE_TUNING = 1.0 # Multiplier for damage in net impact calculation
 
 
 class PolicyAnalyzer:
@@ -74,13 +78,50 @@ class PolicyAnalyzer:
         print(f"Loaded {len(self.archetype_descriptions)} archetype descriptions")
     
     
-    def analyze_policy_with_avnehs_code(self, policy_text: str, archetypes: list) -> np.ndarray:
-        """Compute net impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING) for each archetype."""
+    def analyze_policy_with_avnehs_code(
+        self,
+        policy_text: str,
+        archetypes: list,
+        *,
+        batch_size: int = 64,
+    ) -> np.ndarray:
+        """Compute net impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING) for each archetype.
+        Loads encoder, model, SentimentHead, preprocessor data once; runs batched inference."""
+        import predict_policy_answer as m
+
+        _load_resources(self.data_dir, self.data_dir / "answer_predictor.pt")
+        device = next(m._MODEL.parameters()).device
+        sentiment_head = m._SENTIMENT_HEAD
+        encoder = m._ENCODER
+        model = m._MODEL
+
+        desc_path = str(self.data_dir / "archetype_descriptions.json")
+        pers_path = str(self.data_dir / "persona_vectors.json")
+        desc_np, pers_np = _get_mps_data(desc_path, pers_path)
+        desc_t = torch.from_numpy(desc_np).to(device)
+        pers_t = torch.from_numpy(pers_np).to(device)
+
+        descriptions = [a["description"] for a in archetypes]
+        N = len(descriptions)
+
+        desc_embs = encoder.encode(descriptions, convert_to_numpy=True, show_progress_bar=False)
+        desc_embs = torch.from_numpy(desc_embs.astype("float32")).to(device)
+        q_emb = encoder.encode(policy_text, convert_to_numpy=True)
+        q_emb = torch.from_numpy(q_emb.astype("float32")).to(device)
+
         net_impacts = []
-        for archetype in archetypes:
-            benefit, damage = predict_policy_answer(policy_text, archetype["description"])
-            net_impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING)
-            net_impacts.append(net_impact)
+        for i in range(0, N, batch_size):
+            batch = desc_embs[i : i + batch_size]
+            b = batch.shape[0]
+            persona = preprocess_batched_mps_preloaded(batch, desc_t, pers_t)
+            q_batch = q_emb.unsqueeze(0).expand(b, -1)
+            with torch.inference_mode():
+                out = model(q_batch, persona)
+                sent = sentiment_head(out)  # [bad, good] = [neg, pos]
+            for j in range(b):
+                damage = float(sent[j, 0].item())
+                benefit = float(sent[j, 1].item())
+                net_impacts.append((benefit * BENEFIT_TUNING) + (damage * DAMAGE_TUNING))
         return np.array(net_impacts)
 
     
@@ -189,11 +230,15 @@ class PolicyImpactSimulator:
         self.n_agents = n_agents
         self.device = device
         
-        # Initialize components
+        # Initialize components: pull archetypes randomly from data/archetypes.json
         self.network = MarginalizationNetwork(
             n_agents=n_agents,
-            use_generated=True,
+            use_generated=False,
+            use_archetypes_json=True,
             device=device,
+            archetypes_path=self.data_dir / "archetypes.json",
+            persona_vectors_path=self.data_dir / "persona_vectors.json",
+            archetype_descriptions_path=self.data_dir / "archetype_descriptions.json",
         )
         self.analyzer = PolicyAnalyzer(
             model_name=model_name,
@@ -257,7 +302,13 @@ class PolicyImpactSimulator:
             damage_scale=damage_scale,
             method=method,
         )
-        
+        # Rescale to [-1, 1]: lowest -> -1, highest -> 1, linear in between
+        lo, hi = np.min(initial_damage), np.max(initial_damage)
+        if hi > lo:
+            initial_damage = 2.0 * (initial_damage - lo) / (hi - lo) - 1.0
+        else:
+            initial_damage = np.zeros_like(initial_damage)  # all same -> 0
+
         # Show initial impact
         print(f"\nInitial net impact values (benefit*{BENEFIT_TUNING} - damage*{DAMAGE_TUNING}):")
         print(f"  {initial_damage.tolist()}")
