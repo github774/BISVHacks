@@ -866,11 +866,37 @@
                     <h3 class="font-semibold text-sm text-slate-500 uppercase tracking-wider">AI INSIGHT</h3>
                 </div>
                 <h4 id="act3-ai-title" class="text-xl font-bold mb-4">Strong divide along transit corridors.</h4>
-                <p id="act3-ai-summary" class="text-slate-600 mb-6 leading-relaxed">
+                <p id="act3-ai-summary" class="text-slate-600 mb-4 leading-relaxed">
                     The policy generates high initial approval in the central business district, but faces cascading
                     opposition in suburban rings. Analysis indicates that the lack of supplementary transit funding is
                     the primary driver of this resistance.
                 </p>
+
+                <!-- Most Harmed Section -->
+                <div class="mb-3">
+                    <button id="toggle-most-harmed" class="w-full flex items-center justify-between bg-orange-50 border border-orange-200 p-3 rounded-lg hover:bg-orange-100 transition-colors">
+                        <span class="text-sm font-bold text-orange-700">Most Harmed</span>
+                        <svg class="w-4 h-4 text-orange-700 transition-transform" id="icon-harmed" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="content-most-harmed" class="hidden mt-2 space-y-2 pl-2">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Most Benefited Section -->
+                <div class="mb-4">
+                    <button id="toggle-most-benefited" class="w-full flex items-center justify-between bg-teal-50 border border-teal-200 p-3 rounded-lg hover:bg-teal-100 transition-colors">
+                        <span class="text-sm font-bold text-teal-700">Most Benefited</span>
+                        <svg class="w-4 h-4 text-teal-700 transition-transform" id="icon-benefited" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="content-most-benefited" class="hidden mt-2 space-y-2 pl-2">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
 
                 <div class="bg-slate-50 border-l-4 border-teal-500 p-4 rounded-r-lg">
                     <div class="text-xs font-bold text-teal-700 uppercase mb-1">Key Finding</div>
@@ -890,6 +916,14 @@
         <div class="flex-grow rounded-2xl border border-slate-800 relative bg-[#111111] overflow-hidden"
             id="network-container">
             <canvas id="network-canvas" class="w-full h-full block cursor-pointer" title="Click a node to focus its connections; click empty area to show all"></canvas>
+
+            <!-- Fast Forward Button -->
+            <button id="network-fast-forward" class="absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors z-10">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+                </svg>
+                <span id="network-speed-label">1x</span>
+            </button>
 
             <!-- Tooltip -->
             <div id="node-tooltip"
@@ -969,6 +1003,51 @@
             </div>
         </div>
     </div>
+
+    <!-- Archetype Details Modal -->
+    <div id="archetype-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between p-6 border-b border-slate-200">
+                <h3 class="text-xl font-bold text-slate-900" id="modal-title">Archetype Details</h3>
+                <button id="modal-close" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="overflow-y-auto p-6 space-y-4" id="modal-content">
+                <!-- Content populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Dark mode styles for modal -->
+    <style>
+        .dark-mode #archetype-modal .bg-white {
+            background-color: #1e1e22 !important;
+        }
+        .dark-mode #archetype-modal .text-slate-900 {
+            color: #e2e8f0 !important;
+        }
+        .dark-mode #archetype-modal .text-slate-600 {
+            color: #94a3b8 !important;
+        }
+        .dark-mode #archetype-modal .text-slate-700 {
+            color: #cbd5e1 !important;
+        }
+        .dark-mode #archetype-modal .border-slate-200 {
+            border-color: #2a2a30 !important;
+        }
+        .dark-mode #archetype-modal .border-slate-100 {
+            border-color: #2a2a30 !important;
+        }
+        .dark-mode #archetype-modal .bg-slate-50 {
+            background-color: #18181c !important;
+        }
+        .dark-mode #archetype-modal .hover\:bg-slate-100:hover {
+            background-color: #252530 !important;
+        }
+    </style>
 
     <!-- Scripts Placeholders (will be inserted by script appended block) -->
 
@@ -1147,10 +1226,197 @@
                 el('act3-ai-finding').textContent = 'Most benefited (net impact ' + data.most_benefited[0].net_impact + '): ' + d + (d.length >= 140 ? '...' : '');
             }
 
+            // Populate expandable Most Harmed section
+            if (data.most_harmed && data.most_harmed.length) {
+                const container = el('content-most-harmed');
+                if (container) {
+                    container.innerHTML = data.most_harmed.map((item, idx) => 
+                        `<div class="text-xs bg-white border border-orange-100 p-3 rounded-lg cursor-pointer hover:bg-orange-50 transition-colors" 
+                             data-archetype-id="${item.archetype_id}" 
+                             data-archetype-type="harmed"
+                             data-archetype-index="${idx}">
+                            <div class="font-semibold text-orange-800 mb-1">Archetype ${item.archetype_id} (Impact: ${item.net_impact})</div>
+                            <div class="text-slate-600 leading-relaxed line-clamp-2">${item.description}</div>
+                            <div class="text-xs text-orange-600 mt-1">Click to view details →</div>
+                        </div>`
+                    ).join('');
+                    
+                    // Add click handlers
+                    container.querySelectorAll('[data-archetype-id]').forEach(card => {
+                        card.addEventListener('click', () => {
+                            const archetypeId = parseInt(card.dataset.archetypeId);
+                            const type = card.dataset.archetypeType;
+                            const index = parseInt(card.dataset.archetypeIndex);
+                            showArchetypeModal(archetypeId, type, index, data);
+                        });
+                    });
+                }
+            }
+
+            // Populate expandable Most Benefited section
+            if (data.most_benefited && data.most_benefited.length) {
+                const container = el('content-most-benefited');
+                if (container) {
+                    container.innerHTML = data.most_benefited.map((item, idx) => 
+                        `<div class="text-xs bg-white border border-teal-100 p-3 rounded-lg cursor-pointer hover:bg-teal-50 transition-colors" 
+                             data-archetype-id="${item.archetype_id}" 
+                             data-archetype-type="benefited"
+                             data-archetype-index="${idx}">
+                            <div class="font-semibold text-teal-800 mb-1">Archetype ${item.archetype_id} (Impact: ${item.net_impact})</div>
+                            <div class="text-slate-600 leading-relaxed line-clamp-2">${item.description}</div>
+                            <div class="text-xs text-teal-600 mt-1">Click to view details →</div>
+                        </div>`
+                    ).join('');
+                    
+                    // Add click handlers
+                    container.querySelectorAll('[data-archetype-id]').forEach(card => {
+                        card.addEventListener('click', () => {
+                            const archetypeId = parseInt(card.dataset.archetypeId);
+                            const type = card.dataset.archetypeType;
+                            const index = parseInt(card.dataset.archetypeIndex);
+                            showArchetypeModal(archetypeId, type, index, data);
+                        });
+                    });
+                }
+            }
+
             // Note: Building colors are already applied during simulation and should persist when switching views.
             // Do NOT call updateSentiment() here as it resets all building colors to their initial state.
             buildSentimentTimelinePaths(window.sentimentTimelineData);
         }
+
+        // Show archetype details in modal
+        function showArchetypeModal(archetypeId, type, index, data) {
+            const modal = document.getElementById('archetype-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            
+            if (!modal || !modalTitle || !modalContent) return;
+            
+            // Get the archetype data
+            const archetypeList = type === 'harmed' ? data.most_harmed : data.most_benefited;
+            const archetype = archetypeList[index];
+            
+            if (!archetype) return;
+            
+            // Get full agent description if available
+            const agentDesc = data.agent_descriptions ? data.agent_descriptions[archetypeId] : null;
+            
+            // Build modal content
+            const impactColor = type === 'harmed' ? 'text-orange-600' : 'text-teal-600';
+            const bgColor = type === 'harmed' ? 'bg-orange-50' : 'bg-teal-50';
+            const borderColor = type === 'harmed' ? 'border-orange-200' : 'border-teal-200';
+            
+            let contentHtml = `
+                <div class="${bgColor} border ${borderColor} p-4 rounded-lg">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-lg font-bold text-slate-900">Archetype ${archetypeId}</h4>
+                        <span class="${impactColor} font-bold text-lg">Impact: ${archetype.net_impact}</span>
+                    </div>
+                    <div class="text-sm ${impactColor} uppercase tracking-wider font-semibold">
+                        ${type === 'harmed' ? 'Most Harmed' : 'Most Benefited'}
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 border border-slate-100 p-4 rounded-lg">
+                    <h5 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-2">Description</h5>
+                    <p class="text-slate-600 leading-relaxed">${archetype.description}</p>
+                </div>
+            `;
+            
+            // Add agent-specific details if available
+            if (agentDesc) {
+                contentHtml += `
+                    <div class="bg-slate-50 border border-slate-100 p-4 rounded-lg">
+                        <h5 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Agent Profile</h5>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="flex justify-between p-2 bg-white rounded border border-slate-200">
+                                <span class="font-medium text-slate-600">Stance:</span>
+                                <span class="font-semibold ${
+                                    agentDesc.stance === 'support' ? 'text-teal-600' : 
+                                    agentDesc.stance === 'oppose' ? 'text-orange-600' : 
+                                    'text-slate-500'
+                                }">${agentDesc.stance}</span>
+                            </div>
+                            <div class="flex justify-between p-2 bg-white rounded border border-slate-200">
+                                <span class="font-medium text-slate-600">Influence:</span>
+                                <span class="font-semibold text-slate-900">${(agentDesc.influence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="flex justify-between p-2 bg-white rounded border border-slate-200">
+                                <span class="font-medium text-slate-600">Net Impact:</span>
+                                <span class="font-semibold ${impactColor}">${agentDesc.impact}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            modalTitle.textContent = `Archetype ${archetypeId} Details`;
+            modalContent.innerHTML = contentHtml;
+            modal.classList.remove('hidden');
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close modal handler
+        function closeArchetypeModal() {
+            const modal = document.getElementById('archetype-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Toggle handlers for expandable sections
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleHarmed = document.getElementById('toggle-most-harmed');
+            const toggleBenefited = document.getElementById('toggle-most-benefited');
+            const contentHarmed = document.getElementById('content-most-harmed');
+            const contentBenefited = document.getElementById('content-most-benefited');
+            const iconHarmed = document.getElementById('icon-harmed');
+            const iconBenefited = document.getElementById('icon-benefited');
+
+            if (toggleHarmed && contentHarmed && iconHarmed) {
+                toggleHarmed.addEventListener('click', () => {
+                    const isHidden = contentHarmed.classList.contains('hidden');
+                    contentHarmed.classList.toggle('hidden');
+                    iconHarmed.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                });
+            }
+
+            if (toggleBenefited && contentBenefited && iconBenefited) {
+                toggleBenefited.addEventListener('click', () => {
+                    const isHidden = contentBenefited.classList.contains('hidden');
+                    contentBenefited.classList.toggle('hidden');
+                    iconBenefited.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+                });
+            }
+
+            // Modal handlers
+            const modal = document.getElementById('archetype-modal');
+            const modalClose = document.getElementById('modal-close');
+            
+            if (modalClose) {
+                modalClose.addEventListener('click', closeArchetypeModal);
+            }
+            
+            if (modal) {
+                // Close on backdrop click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeArchetypeModal();
+                    }
+                });
+                
+                // Close on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                        closeArchetypeModal();
+                    }
+                });
+            }
+        });
 
         // === ACT 1 TO ACT 2 TRANSITION ===
         const btnSimulate = document.getElementById('simulate-btn');
@@ -2007,37 +2273,58 @@
             // Drift Logic
             let driftEvents = 0;
             const liveDriftCount = document.getElementById('live-drift-count');
+            let networkSpeedMultiplier = 1;
+            let driftIntervalId;
 
-            setInterval(() => {
-                if (currentMode !== 'network') return;
+            // Fast Forward button handler
+            const fastForwardBtn = document.getElementById('network-fast-forward');
+            const speedLabel = document.getElementById('network-speed-label');
+            if (fastForwardBtn && speedLabel) {
+                fastForwardBtn.addEventListener('click', () => {
+                    networkSpeedMultiplier *= 2;
+                    if (networkSpeedMultiplier > 16) networkSpeedMultiplier = 1; // Reset after 16x
+                    speedLabel.textContent = networkSpeedMultiplier + 'x';
+                    
+                    // Restart drift interval with new speed
+                    if (driftIntervalId) clearInterval(driftIntervalId);
+                    startDriftInterval();
+                });
+            }
 
-                // Find a mutable neutral node and mutate it
-                const neutrals = nodes.filter(n => n.stance === 'neutral' && !n.isAnchor);
-                if (neutrals.length > 0) {
-                    const node = neutrals[Math.floor(Math.random() * neutrals.length)];
-                    const newStance = Math.random() > 0.5 ? 'support' : 'oppose';
+            function startDriftInterval() {
+                driftIntervalId = setInterval(() => {
+                    if (currentMode !== 'network') return;
 
-                    node.stance = newStance;
-                    node.rippleRadius = 1; // start ripple
+                    // Find a mutable neutral node and mutate it
+                    const neutrals = nodes.filter(n => n.stance === 'neutral' && !n.isAnchor);
+                    if (neutrals.length > 0) {
+                        const node = neutrals[Math.floor(Math.random() * neutrals.length)];
+                        const newStance = Math.random() > 0.5 ? 'support' : 'oppose';
 
-                    // Update their decision driver narrative
-                    node.decisionData = newStance === 'support'
-                        ? driversSupport[Math.floor(Math.random() * driversSupport.length)]
-                        : driversOppose[Math.floor(Math.random() * driversOppose.length)];
+                        node.stance = newStance;
+                        node.rippleRadius = 1; // start ripple
 
-                    // Add kick velocity
-                    const attr = attractors[newStance];
-                    const angle = Math.atan2(attr.y - node.y, attr.x - node.x);
-                    node.vx += Math.cos(angle) * 15;
-                    node.vy += Math.sin(angle) * 15;
+                        // Update their decision driver narrative
+                        node.decisionData = newStance === 'support'
+                            ? driversSupport[Math.floor(Math.random() * driversSupport.length)]
+                            : driversOppose[Math.floor(Math.random() * driversOppose.length)];
 
-                    driftEvents++;
-                    liveDriftCount.innerText = driftEvents;
+                        // Add kick velocity scaled by speed multiplier
+                        const attr = attractors[newStance];
+                        const angle = Math.atan2(attr.y - node.y, attr.x - node.x);
+                        node.vx += Math.cos(angle) * 15 * networkSpeedMultiplier;
+                        node.vy += Math.sin(angle) * 15 * networkSpeedMultiplier;
 
-                    // Add to Tree UI
-                    addDriftEventToTree(node.name, newStance);
-                }
-            }, 800);
+                        driftEvents++;
+                        liveDriftCount.innerText = driftEvents;
+
+                        // Add to Tree UI
+                        addDriftEventToTree(node.name, newStance);
+                    }
+                }, 800 / networkSpeedMultiplier);
+            }
+
+            startDriftInterval();
 
             function addDriftEventToTree(name, stance) {
                 const containerId = stance === 'support' ? 'branch-support' : 'branch-oppose';
@@ -2193,8 +2480,9 @@
                     n1.vx *= 0.9;
                     n1.vy *= 0.9;
 
-                    n1.x += n1.vx;
-                    n1.y += n1.vy;
+                    // Apply velocity with speed multiplier for fast forward
+                    n1.x += n1.vx * networkSpeedMultiplier;
+                    n1.y += n1.vy * networkSpeedMultiplier;
 
                     // History for trails
                     if (Math.abs(n1.vx) > 0.1 || Math.abs(n1.vy) > 0.1) {
@@ -2206,7 +2494,7 @@
 
                     // Ripple expansion
                     if (n1.rippleRadius > 0) {
-                        n1.rippleRadius += 0.5;
+                        n1.rippleRadius += 0.5 * networkSpeedMultiplier;
                         if (n1.rippleRadius > 30) n1.rippleRadius = 0;
                     }
                 }
