@@ -3,12 +3,13 @@ Preprocessor: maps a description embedding -> weighted blend of persona vectors.
 
 Steps:
 1. Cosine similarity between input embedding and each description embedding
-2. Keep top 5 similarities, zero the rest
+2. Keep top_k similarities, zero the rest
 3. Round to 0.0001
 4. Multiply by 10000
 5. Softmax
 6. Weighted sum of persona vectors
-7. Return 384D vector
+7. Blend: 50% weighted sum + 50% input descriptor
+8. Return 384D vector
 """
 
 import json
@@ -47,7 +48,7 @@ def preprocess(
     embedding: np.ndarray | list[float],
     descriptions_path: str | Path = "data/archetype_descriptions.json",
     persona_vectors_path: str | Path = "data/persona_vectors.json",
-    top_k: int = 10,
+    top_k: int = 1000,
     round_to: float = 0.0001,
     scale: float = 10000,
     verbose: bool = False,
@@ -106,9 +107,14 @@ def preprocess(
         debug["step5_probs"] = probs.copy()
 
     # Step 6: Weighted sum of persona vectors
-    output = np.sum(probs[:, np.newaxis] * persona_vectors, axis=0)
+    weighted_sum = np.sum(probs[:, np.newaxis] * persona_vectors, axis=0)
     if verbose:
-        debug["step6_output"] = output.copy()
+        debug["step6_weighted_sum"] = weighted_sum.copy()
+
+    # Step 7: Half weighted sum, half descriptor
+    output = 0.5 * weighted_sum + 0.5 * embedding
+    if verbose:
+        debug["step7_output"] = output.copy()
 
     return output.astype(np.float32), debug
 
@@ -175,7 +181,10 @@ def preprocess_batched_mps(
         probs = F.softmax(scaled, dim=-1)
 
         # Step 6: Weighted sum (B, N) @ (N, 384) -> (B, 384)
-        out = probs @ pers
+        weighted_sum = probs @ pers
+
+        # Step 7: Half weighted sum, half descriptor
+        out = 0.5 * weighted_sum + 0.5 * q
 
     return out.cpu().numpy().astype(np.float32)
 
@@ -206,5 +215,6 @@ def preprocess_batched_mps_preloaded(
         scaled = weights * scale
         scaled = scaled - scaled.max(dim=-1, keepdim=True).values
         probs = F.softmax(scaled, dim=-1)
-        out = probs @ pers_t
+        weighted_sum = probs @ pers_t
+        out = 0.5 * weighted_sum + 0.5 * embeddings
     return out

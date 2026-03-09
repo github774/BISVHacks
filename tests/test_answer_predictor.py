@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test AnswerPredictor: accuracy on new_personas, MPS batched speed test."""
+"""Test AnswerPredictor: accuracy on new_personas via SentimentHead [bad, good], MPS batched speed test."""
 
 import json
 import random
@@ -11,17 +11,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 import torch
-import torch.nn.functional as F
 
 from answer_predictor import AnswerPredictor, DIM
-from sentence_transformers import SentenceTransformer
-
-
-def _beneficial_damaging_sims(emb, ben, dam):
-    emb_n = F.normalize(emb, p=2, dim=-1)
-    sim_ben = emb_n @ ben
-    sim_dam = emb_n @ dam
-    return torch.stack([sim_ben, sim_dam], dim=-1)
+from sentiment_head import SentimentHead
 
 
 def main():
@@ -69,30 +61,27 @@ def main():
         q_test = torch.tensor([s[0] for s in test_data], dtype=torch.float32, device=device)
         desc_test = torch.tensor([s[1] for s in test_data], dtype=torch.float32, device=device)
         a_test = torch.tensor([s[2] for s in test_data], dtype=torch.float32, device=device)
-        a_test_norm = F.normalize(a_test, p=2, dim=-1)
+        a_test_norm = torch.nn.functional.normalize(a_test, p=2, dim=-1)
 
-        encoder = SentenceTransformer("all-MiniLM-L6-v2", device=device)
-        ben_emb = F.normalize(
-            torch.tensor(encoder.encode("This policy is beneficial to me.", convert_to_numpy=True), dtype=torch.float32, device=device),
-            p=2, dim=0,
-        )
-        dam_raw = F.normalize(
-            torch.tensor(encoder.encode("This policy is damaging to me.", convert_to_numpy=True), dtype=torch.float32, device=device),
-            p=2, dim=0,
-        )
-        dam_emb = F.normalize(dam_raw - (dam_raw @ ben_emb) * ben_emb, p=2, dim=0)
+        sentiment_head = SentimentHead().to(device)
+        sent_ckpt = ROOT / "data" / "sentiment_head.pt"
+        if sent_ckpt.exists():
+            sentiment_head.load_state_dict(torch.load(sent_ckpt, map_location=device))
+        else:
+            print("  (sentiment_head.pt not found, using random init)")
+        sentiment_head.eval()
 
         with torch.inference_mode():
             pred = model(q_test, desc_test)
-            cos_sim = F.cosine_similarity(F.normalize(pred, p=2, dim=-1), a_test_norm, dim=-1).mean().item()
-            v_orig = _beneficial_damaging_sims(a_test_norm, ben_emb, dam_emb)
-            v_pred = _beneficial_damaging_sims(pred, ben_emb, dam_emb)
-            diff_orig = v_orig[:, 0] - v_orig[:, 1]
-            diff_pred = v_pred[:, 0] - v_pred[:, 1]
+            v_orig = sentiment_head(a_test_norm)
+            v_pred = sentiment_head(pred)
+            diff_orig = v_orig[:, 1] - v_orig[:, 0]  # good - bad
+            diff_pred = v_pred[:, 1] - v_pred[:, 0]
             sign_orig = torch.sign(diff_orig)
             margin_acc = ((sign_orig * diff_pred) >= 0.05).float().mean().item()
+            sent_mae = torch.nn.functional.l1_loss(v_pred, v_orig).item()
         print(f"\nAccuracy (test set, n={len(test_data)}):")
-        print(f"  Answer cos sim: {cos_sim:.4f}")
+        print(f"  Sentiment MAE: {sent_mae:.4f}")
         print(f"  Margin acc (≥5%): {margin_acc:.4f}")
 
     # MPS batched speed test

@@ -5,7 +5,7 @@ Train AnswerPredictor on new_personas.json.
 - v1 = question embedding, v2 = description embedding
 - target = answer embedding
 
-Loss: margin ranking (preserve beneficial>damaging or vice versa by ≥5%) + cosine similarity.
+Loss: sentiment MAE + cosine to gt + spread (penalize batch similarity).
 """
 
 import json
@@ -19,45 +19,33 @@ sys.path.insert(0, str(ROOT / "src"))
 import torch
 import torch.nn.functional as F
 from answer_predictor import AnswerPredictor
-from sentence_transformers import SentenceTransformer
+from sentiment_head import SentimentHead
 
 
-def _beneficial_damaging_sims(emb: torch.Tensor, ben: torch.Tensor, dam: torch.Tensor) -> torch.Tensor:
-    """emb (B,384), ben/dam (384,). Returns (B,2) raw cosine sims [ben, dam]."""
-    emb_n = F.normalize(emb, p=2, dim=-1)
-    sim_ben = emb_n @ ben
-    sim_dam = emb_n @ dam
-    return torch.stack([sim_ben, sim_dam], dim=-1)
-
-
-def _margin_ranking_loss(diff_orig: torch.Tensor, diff_pred: torch.Tensor, margin: float = 0.05) -> torch.Tensor:
-    """Preserve sign: if orig has ben>dam, pred should have ben-dam >= margin (and vice versa)."""
-    sign = torch.sign(diff_orig)
-    sign = torch.where(sign == 0, torch.ones_like(sign), sign)
-    return F.relu(margin - sign * diff_pred).mean()
+def _spread_loss(pred: torch.Tensor) -> torch.Tensor:
+    """Penalize high pairwise similarity within batch (encourage diverse outputs)."""
+    pred_n = F.normalize(pred, p=2, dim=-1)
+    sim = pred_n @ pred_n.T  # (B, B)
+    B = pred.shape[0]
+    mask = 1 - torch.eye(B, device=pred.device)
+    off_diag = (sim * mask).sum() / (mask.sum() + 1e-9)  # mean pairwise cos sim
+    return off_diag  # minimize -> outputs less similar
 
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AnswerPredictor().to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=3e-2)
-    encoder = SentenceTransformer("all-MiniLM-L6-v2", device=device)
-    ben_emb = F.normalize(
-        torch.tensor(
-            encoder.encode("This policy is beneficial to me.", convert_to_numpy=True),
-            dtype=torch.float32, device=device,
-        ),
-        p=2, dim=0,
-    )
-    dam_raw = F.normalize(
-        torch.tensor(
-            encoder.encode("This policy is damaging to me.", convert_to_numpy=True),
-            dtype=torch.float32, device=device,
-        ),
-        p=2, dim=0,
-    )
-    # Orthogonalize: dam_emb ⊥ ben_emb so cos(ben, dam) = 0
-    dam_emb = F.normalize(dam_raw - (dam_raw @ ben_emb) * ben_emb, p=2, dim=0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=2e-3)
+    sentiment_head = SentimentHead().to(device)
+    sent_ckpt = ROOT / "data" / "sentiment_head.pt"
+    if sent_ckpt.exists():
+        ckpt = torch.load(sent_ckpt, map_location=device)
+        sentiment_head.load_state_dict(ckpt, strict=False)
+    else:
+        print("Warning: sentiment_head.pt not found, using random init. Run scripts/train_sentiment_head.py first.")
+    sentiment_head.eval()
+    for p in sentiment_head.parameters():
+        p.requires_grad = False
 
     with open(ROOT / "data" / "new_personas.json") as f:
         personas = json.load(f)
@@ -87,8 +75,8 @@ def main():
     a_train_norm = F.normalize(a_train, p=2, dim=-1)
     a_test_norm = F.normalize(a_test, p=2, dim=-1)
 
-    n_epochs = 100
-    batch_size = 32
+    n_epochs = 500
+    batch_size = 256
 
     for epoch in range(n_epochs):
         model.train()
@@ -102,13 +90,12 @@ def main():
             a_orig = a_train_norm[idx]
 
             pred = model(q, desc)
-            v_orig = _beneficial_damaging_sims(a_orig, ben_emb, dam_emb)  # (B, 2)
-            v_pred = _beneficial_damaging_sims(pred, ben_emb, dam_emb)  # (B, 2)
-            diff_orig = v_orig[:, 0] - v_orig[:, 1]
-            diff_pred = v_pred[:, 0] - v_pred[:, 1]
-            loss_margin = _margin_ranking_loss(diff_orig, diff_pred, margin=0.05)
+            pred_sent = torch.sigmoid(sentiment_head(pred))
+            gt_sent = torch.sigmoid(sentiment_head(a_orig))
+            loss_sent = F.l1_loss(pred_sent, gt_sent)
             loss_cos = (1 - F.cosine_similarity(F.normalize(pred, p=2, dim=-1), a_orig, dim=-1)).mean()
-            loss = loss_margin + loss_cos
+            loss_spread = _spread_loss(pred)
+            loss = loss_sent + loss_cos + loss_spread
 
             optimizer.zero_grad()
             loss.backward()
@@ -124,14 +111,11 @@ def main():
     model.eval()
     with torch.no_grad():
         pred = model(q_test, desc_test)
-        v_orig = _beneficial_damaging_sims(a_test_norm, ben_emb, dam_emb)
-        v_pred = _beneficial_damaging_sims(pred, ben_emb, dam_emb)
-        diff_orig = v_orig[:, 0] - v_orig[:, 1]
-        diff_pred = v_pred[:, 0] - v_pred[:, 1]
-        sign_orig = torch.sign(diff_orig)
-        correct = ((sign_orig * diff_pred) >= 0.05).float().mean().item()
-        cos = F.cosine_similarity(F.normalize(pred, p=2, dim=-1), a_test_norm, dim=-1).mean().item()
-    print(f"Test margin acc (≥5%): {correct:.4f}, answer cos sim: {cos:.4f}")
+        pred_sent = torch.sigmoid(sentiment_head(pred))
+        gt_sent = torch.sigmoid(sentiment_head(a_test_norm))
+        sent_mae = F.l1_loss(pred_sent, gt_sent).item()
+        cos_sim = F.cosine_similarity(F.normalize(pred, p=2, dim=-1), a_test_norm, dim=-1).mean().item()
+    print(f"Test sentiment MAE: {sent_mae:.4f}, cos sim to gt: {cos_sim:.4f}")
 
     torch.save(model.state_dict(), ROOT / "data" / "answer_predictor.pt")
     print("Saved model to data/answer_predictor.pt")

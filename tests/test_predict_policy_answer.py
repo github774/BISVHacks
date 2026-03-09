@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Test predict_policy_answer: one example with verbose steps, then speed tests on N random personas.
-Compares predicted [ben, dam] to real answer projection from new_personas.
+Uses SentimentHead to convert embeddings to [bad, good] 2D. Compares predicted vs real from new_personas.
 Run from project root: python tests/test_predict_policy_answer.py
 """
 
@@ -16,19 +16,20 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from predict_policy_answer import predict_policy_answer, _load_resources
 from preprocessor import preprocess
 from answer_predictor import AnswerPredictor
+from sentiment_head import SentimentHead
 from sentence_transformers import SentenceTransformer
 
 
-def _real_2d_from_answer_embedding(ans_emb: list[float], ben: torch.Tensor, dam: torch.Tensor, device: torch.device) -> list[float]:
-    """Project answer embedding onto ben/dam to get ground-truth [sim_ben, sim_dam]."""
-    t = torch.tensor(ans_emb, dtype=torch.float32, device=device)
-    t_n = F.normalize(t, p=2, dim=0)
-    return [float((t_n @ ben).item()), float((t_n @ dam).item())]
+def _real_2d_from_answer_embedding(ans_emb: list[float], sentiment_head: SentimentHead, device: torch.device) -> list[float]:
+    """Run answer embedding through SentimentHead to get [bad, good]."""
+    t = torch.tensor(ans_emb, dtype=torch.float32, device=device).unsqueeze(0)
+    with torch.inference_mode():
+        out = sentiment_head(t)
+    return [float(out[0, 0].item()), float(out[0, 1].item())]
 
 
 def _verbose_one_example():
@@ -48,12 +49,18 @@ def _verbose_one_example():
     model_path = data_dir / "answer_predictor.pt"
 
     # 1. Load resources
-    print("\n1. Loading resources (encoder, model, ben/dam embeddings)...")
+    import predict_policy_answer as m
+    print("\n1. Loading resources (encoder, model, SentimentHead)...")
     t0 = time.perf_counter()
     _load_resources(data_dir, model_path)
+    device = next(m._MODEL.parameters()).device
+    sentiment_head = SentimentHead().to(device)
+    sent_ckpt = data_dir / "sentiment_head.pt"
+    if sent_ckpt.exists():
+        sentiment_head.load_state_dict(torch.load(sent_ckpt, map_location=device))
+    sentiment_head.eval()
     print(f"   Load time: {(time.perf_counter() - t0) * 1000:.1f} ms")
 
-    import predict_policy_answer as m
     encoder = m._ENCODER
 
     # 2. Encode
@@ -77,38 +84,33 @@ def _verbose_one_example():
     print(f"   Preprocess time: {(time.perf_counter() - t0) * 1000:.1f} ms")
     print(f"   Persona blend shape: {persona_blend.shape}")
 
-    # 4. Answer predictor
+    # 4. Answer predictor + SentimentHead
     model = m._MODEL
-    ben = m._BEN_EMB
-    dam = m._DAM_EMB
-    device = next(model.parameters()).device
 
     q_t = torch.tensor(q_emb, dtype=torch.float32, device=device).unsqueeze(0)
     persona_t = torch.tensor(persona_blend, dtype=torch.float32, device=device).unsqueeze(0)
 
-    print("\n4. AnswerPredictor forward...")
+    print("\n4. AnswerPredictor + SentimentHead...")
     t0 = time.perf_counter()
     with torch.inference_mode():
         out = model(q_t, persona_t)
-        emb_n = F.normalize(out, p=2, dim=-1)
-        sim_ben = (emb_n @ ben).item()
-        sim_dam = (emb_n @ dam).item()
+        result = sentiment_head(out)
     print(f"   Forward time: {(time.perf_counter() - t0) * 1000:.1f} ms")
 
-    # 5. List conversion
-    result = [float(sim_ben), float(sim_dam)]
-    print("\n5. Final 2D vector (list conversion)...")
+    # 5. List conversion [bad, good]
+    result = [float(result[0, 0].item()), float(result[0, 1].item())]
+    print("\n5. Final 2D vector [bad, good] (SentimentHead)...")
     print(f"   Result: {result}")
 
-    # Full function call
+    # Full function call (predict_policy_answer uses SentimentHead)
     print("\n6. Full predict_policy_answer() call:")
     result_full = predict_policy_answer(description, policy_question)
     print(f"   Predicted [ben, dam]: {result_full}")
 
-    # Compare to real answer embedding projection
-    real_2d = _real_2d_from_answer_embedding(real_answer_emb, ben, dam, device)
-    print(f"\n7. Real answer [ben, dam] (from answer_embedding): {real_2d}")
-    print(f"   Diff (pred - real): [{result_full[0] - real_2d[0]:.4f}, {result_full[1] - real_2d[1]:.4f}]")
+    # Compare to real answer via SentimentHead
+    real_2d = _real_2d_from_answer_embedding(real_answer_emb, sentiment_head, device)
+    print(f"\n7. Real answer [bad, good] (SentimentHead on answer_embedding): {real_2d}")
+    print(f"   Diff (pred - real): [{result[0] - real_2d[0]:.4f}, {result[1] - real_2d[1]:.4f}]")
 
 
 def _speed_test_1000():
@@ -153,11 +155,11 @@ def _speed_test_1000():
     model.load_state_dict(sd)
     model.eval()
 
-    ben_raw = encoder.encode("This policy is beneficial to me.", convert_to_numpy=True)
-    dam_raw = encoder.encode("This policy is damaging to me.", convert_to_numpy=True)
-    ben = F.normalize(torch.tensor(ben_raw, dtype=torch.float32, device=device), p=2, dim=0)
-    dam_raw_t = F.normalize(torch.tensor(dam_raw, dtype=torch.float32, device=device), p=2, dim=0)
-    dam = F.normalize(dam_raw_t - (dam_raw_t @ ben) * ben, p=2, dim=0)
+    sentiment_head = SentimentHead().to(device)
+    sent_ckpt = data_dir / "sentiment_head.pt"
+    if sent_ckpt.exists():
+        sentiment_head.load_state_dict(torch.load(sent_ckpt, map_location=device))
+    sentiment_head.eval()
 
     from preprocessor import _get_mps_data, preprocess_batched_mps_preloaded
     desc_np, pers_np = _get_mps_data(desc_path, pers_path)
@@ -180,11 +182,9 @@ def _speed_test_1000():
             persona = preprocess_batched_mps_preloaded(emb, desc_t, pers_t)
             with torch.inference_mode():
                 out = model(qb, persona)
-                emb_n = F.normalize(out, p=2, dim=-1)
-                sim_ben = emb_n @ ben
-                sim_dam = emb_n @ dam
+                sent = sentiment_head(out)
             for j in range(b):
-                out_list.append([float(sim_ben[j].item()), float(sim_dam[j].item())])
+                out_list.append([float(sent[j, 0].item()), float(sent[j, 1].item())])
         return out_list
 
     print("\n--- Time 1: Batched full (preproc + answer_predictor + list), embeddings preloaded ---")
@@ -202,9 +202,7 @@ def _speed_test_1000():
         persona = preprocess_batched_mps_preloaded(emb, desc_t, pers_t)
         with torch.inference_mode():
             out = model(qb, persona)
-            emb_n = F.normalize(out, p=2, dim=-1)
-            _ = emb_n @ ben
-            _ = emb_n @ dam
+            _ = sentiment_head(out)
     t2 = time.perf_counter() - t0
     print(f"   {N} users (batch={BATCH}): {t2:.3f} s  ({t2 / N * 1000:.2f} ms per user)")
 
@@ -218,13 +216,13 @@ def _speed_test_1000():
     t3 = time.perf_counter() - t0
     print(f"   {N} users (batch={BATCH}): {t3:.3f} s  ({t3 / N * 1000:.2f} ms per user)")
 
-    # Compare predicted vs real
-    real_2ds = [_real_2d_from_answer_embedding(emb, ben, dam, device) for emb in real_answer_embs]
+    # Compare predicted vs real (both via SentimentHead)
+    real_2ds = [_real_2d_from_answer_embedding(emb, sentiment_head, device) for emb in real_answer_embs]
     pred = np.array(results)
     real = np.array(real_2ds)
     mae = np.abs(pred - real).mean()
     cos_sim = np.sum(pred * real, axis=1) / (np.linalg.norm(pred, axis=1) * np.linalg.norm(real, axis=1) + 1e-9)
-    print("\n--- Predicted vs real [ben, dam] (from answer_embedding) ---")
+    print("\n--- Predicted vs real [bad, good] (SentimentHead on answer_embedding) ---")
     print(f"   Mean absolute error: {mae:.4f}")
     print(f"   Mean cosine similarity (2D): {cos_sim.mean():.4f}")
 

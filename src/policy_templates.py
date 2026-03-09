@@ -205,39 +205,56 @@ def _tailor_chained(archetype: dict[str, Any], template_idx: int) -> str:
     return templates[template_idx % len(templates)]
 
 
-def generate_questions_for_archetype(archetype_id: int, rng: random.Random) -> list[str]:
-    """Generate 10 unique policy questions: 3 positive, 3 negative, 3 neutral, 1 chained."""
+def generate_questions_for_archetype(
+    archetype_id: int,
+    rng: random.Random,
+    *,
+    include_neutral_chained: bool = True,
+) -> tuple[list[str], tuple]:
+    """Generate policy questions. If include_neutral_chained: 10 (3 pos, 3 neg, 3 neutral, 1 chained); else 6 (3 pos, 3 neg)."""
     pool = list(enumerate(POLICY_QUESTION_TEMPLATES))
     rng.shuffle(pool)
 
-    # Assign 3 positive, 3 negative, 3 neutral, 1 chained
     positive_idx = [i for i, _ in pool[:3]]
     negative_idx = [i for i, _ in pool[3:6]]
-    neutral_idx = [i for i, _ in pool[6:9]]
-    chained_q = rng.choice(CHAINED_EFFECT_TEMPLATES)
-
     questions = (
         [POLICY_QUESTION_TEMPLATES[i] for i in positive_idx]
         + [POLICY_QUESTION_TEMPLATES[i] for i in negative_idx]
-        + [POLICY_QUESTION_TEMPLATES[i] for i in neutral_idx]
-        + [chained_q]
     )
-    return questions, (positive_idx, negative_idx, neutral_idx, chained_q)
+    metadata: tuple = (positive_idx, negative_idx)
+
+    if include_neutral_chained:
+        neutral_idx = [i for i, _ in pool[6:9]]
+        chained_q = rng.choice(CHAINED_EFFECT_TEMPLATES)
+        questions = (
+            questions
+            + [POLICY_QUESTION_TEMPLATES[i] for i in neutral_idx]
+            + [chained_q]
+        )
+        metadata = (positive_idx, negative_idx, neutral_idx, chained_q)
+
+    return questions, metadata
 
 
 def generate_answers_for_archetype(
     archetype: dict[str, Any],
     question_metadata: tuple,
     rng: random.Random,
+    *,
+    include_neutral_chained: bool = True,
 ) -> list[str]:
-    """Generate 10 answers tailored to archetype and effect types."""
-    positive_idx, negative_idx, neutral_idx, _ = question_metadata
+    """Generate answers. If include_neutral_chained: 10; else 6 (3 pos, 3 neg only)."""
+    positive_idx, negative_idx = question_metadata[0], question_metadata[1]
     answers = []
     for i in positive_idx:
         answers.append(_tailor_positive(archetype, i))
     for i in negative_idx:
         answers.append(_tailor_negative(archetype, i))
-    for i in neutral_idx:
-        answers.append(_tailor_neutral(archetype, i))
-    answers.append(_tailor_chained(archetype, rng.randint(0, len(CHAINED_EFFECT_TEMPLATES) - 1)))
+
+    if include_neutral_chained and len(question_metadata) >= 4:
+        _, _, neutral_idx, _ = question_metadata
+        for i in neutral_idx:
+            answers.append(_tailor_neutral(archetype, i))
+        answers.append(_tailor_chained(archetype, rng.randint(0, len(CHAINED_EFFECT_TEMPLATES) - 1)))
+
     return answers
