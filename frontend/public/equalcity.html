@@ -582,6 +582,12 @@
                             <option>All Residents</option>
                         </select>
                     </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Number of Agents (nodes)</label>
+                        <input type="number" id="n-agents-select" min="10" max="10000" value="1000"
+                            placeholder="e.g. 150"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
                 </div>
 
                 <div
@@ -619,6 +625,7 @@
     <div id="act2-ui" class="pointer-events-none p-6 flex flex-col justify-between">
         <div class="flex justify-between items-start mt-20">
             <!-- Sentiment Top Left -->
+            <div class="flex gap-4 items-start">
             <div class="bg-white/80 backdrop-blur rounded-xl p-4 shadow-lg border border-slate-100 min-w-[200px]">
                 <div class="text-xs font-semibold text-slate-500 uppercase mb-3">Live Sentiment</div>
                 <div class="space-y-3">
@@ -644,6 +651,18 @@
                     </div>
                 </div>
             </div>
+            <div id="live-timeline" class="bg-white/80 backdrop-blur rounded-xl p-4 shadow-lg border border-slate-100 w-48 h-32 hidden">
+                <div class="text-xs font-semibold text-slate-500 uppercase mb-2">Sentiment Timeline</div>
+                <svg class="w-full h-20" viewBox="0 0 100 50" preserveAspectRatio="none">
+                    <path id="live-path-support" fill="none" stroke="#14b8a6" stroke-width="1.5" d=""/>
+                    <path id="live-path-oppose" fill="none" stroke="#f97316" stroke-width="1.5" d=""/>
+                    <path id="live-path-neutral" fill="none" stroke="#94a3b8" stroke-width="1.5" d=""/>
+                </svg>
+                <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                    <span>T=0</span><span>T=2</span><span>T=4</span>
+                </div>
+            </div>
+        </div>
         </div>
 
         <div class="flex justify-between items-end mb-6">
@@ -728,70 +747,71 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Panel: Charts -->
             <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Line Chart Mock -->
+                <!-- Sentiment Timeline (built live from simulation / backend) -->
                 <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm col-span-1 md:col-span-2">
                     <h3 class="font-semibold text-lg mb-4">Combined Overview: Sentiment Timeline</h3>
-                    <div class="h-48 relative w-full border-b border-l border-slate-200">
-                        <svg class="w-full h-full" viewBox="0 0 100 50" preserveAspectRatio="none">
-                            <path class="chart-line hover:stroke-[3px] transition-all cursor-crosshair group"
-                                fill="none" stroke="#14b8a6" stroke-width="2" d="M0,40 Q20,35 40,20 T80,10 T100,5">
-                                <title>Support Trend: Rises to 48%</title>
-                            </path>
-                            <path class="chart-line hover:stroke-[3px] transition-all cursor-crosshair group"
-                                fill="none" stroke="#f97316" stroke-width="2" d="M0,45 Q20,40 50,30 T80,25 T100,20"
-                                style="animation-delay: 0.2s;">
-                                <title>Oppose Trend: Stabilizes at 30%</title>
-                            </path>
-                            <path class="chart-line hover:stroke-[3px] transition-all cursor-crosshair group"
-                                fill="none" stroke="#94a3b8" stroke-width="2" d="M0,10 Q20,15 40,30 T80,40 T100,45"
-                                style="animation-delay: 0.4s;">
-                                <title>Neutral Trend: Drops to 22%</title>
-                            </path>
-                        </svg>
+                    <div class="relative w-full">
+                        <div id="sentiment-timeline-chart" class="h-48 relative w-full border-b border-l border-slate-200">
+                            <svg class="w-full h-full" viewBox="0 0 100 50" preserveAspectRatio="none">
+                                <path id="path-support" class="chart-line hover:stroke-[3px] transition-all cursor-crosshair"
+                                    fill="none" stroke="#14b8a6" stroke-width="2" stroke-dasharray="1000" stroke-dashoffset="1000" d=""/>
+                                <path id="path-oppose" class="chart-line hover:stroke-[3px] transition-all cursor-crosshair"
+                                    fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="1000" stroke-dashoffset="1000" d=""/>
+                                <path id="path-neutral" class="chart-line hover:stroke-[3px] transition-all cursor-crosshair"
+                                    fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="1000" stroke-dashoffset="1000" d=""/>
+                            </svg>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500 mt-2 px-0.5 font-mono">
+                            <span>T=0</span>
+                            <span>T=1</span>
+                            <span>T=2</span>
+                            <span>T=3</span>
+                            <span>T=4</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Bar Chart Mock -->
+                <!-- Bar Chart (uses backend distribution) -->
                 <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
                     <h3 class="font-semibold text-lg mb-4">By Race / Ethnicity</h3>
-                    <div class="flex items-end gap-2 h-40 mt-6 relative">
+                    <div id="race-chart" class="flex items-end gap-2 h-40 mt-6 relative">
                         <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 80%;">
+                            data-series="support" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Support: 80%</div>
+                                Support: 0%</div>
                         </div>
                         <div class="flex-1 bg-orange-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 20%;">
+                            data-series="oppose" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Oppose: 20%</div>
+                                Oppose: 0%</div>
                         </div>
                         <div class="w-2"></div>
                         <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 30%;">
+                            data-series="support" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Support: 30%</div>
+                                Support: 0%</div>
                         </div>
                         <div class="flex-1 bg-orange-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 60%;">
+                            data-series="oppose" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Oppose: 60%</div>
+                                Oppose: 0%</div>
                         </div>
                         <div class="w-2"></div>
                         <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 50%;">
+                            data-series="support" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Support: 50%</div>
+                                Support: 0%</div>
                         </div>
                         <div class="flex-1 bg-orange-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 40%;">
+                            data-series="oppose" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Oppose: 40%</div>
+                                Oppose: 0%</div>
                         </div>
                     </div>
                     <div class="flex justify-between text-xs text-slate-500 mt-2">
@@ -801,27 +821,27 @@
                     </div>
                 </div>
 
-                <!-- Income Bar Chart Mock -->
+                <!-- Income Bar Chart (uses backend distribution) -->
                 <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between">
                     <h3 class="font-semibold text-lg mb-4">By Income Bracket</h3>
-                    <div class="flex items-end gap-3 h-40 mt-6 relative">
+                    <div id="income-chart" class="flex items-end gap-3 h-40 mt-6 relative">
                         <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 30%;">
+                            data-series="support" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Low: 30%</div>
+                                Low: 0%</div>
                         </div>
                         <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 60%;">
+                            data-series="support" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                Mid: 60%</div>
+                                Mid: 0%</div>
                         </div>
                         <div class="flex-1 bg-teal-500 rounded-t-sm h-0 chart-bar group hover:opacity-80 cursor-pointer relative"
-                            style="--target-h: 80%;">
+                            data-series="support" style="--target-h: 0%;">
                             <div
                                 class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-                                High: 80%</div>
+                                High: 0%</div>
                         </div>
                     </div>
                     <div class="flex justify-between text-xs text-slate-500 mt-2">
@@ -864,7 +884,7 @@
         <!-- Canvas Left bg-opacity-20 bg-slate-800-->
         <div class="flex-grow rounded-2xl border border-slate-800 relative bg-[#111111] overflow-hidden"
             id="network-container">
-            <canvas id="network-canvas" class="w-full h-full block"></canvas>
+            <canvas id="network-canvas" class="w-full h-full block cursor-pointer" title="Click a node to focus its connections; click empty area to show all"></canvas>
 
             <!-- Tooltip -->
             <div id="node-tooltip"
@@ -1016,17 +1036,81 @@
         const API_BASE = (typeof window !== 'undefined' && window.MARGIN_API_BASE) || 'http://localhost:2026';
         window.lastAnalysisResult = null;
 
-        async function analyzePolicy(policyText) {
+        async function analyzePolicy(policyText, nAgents) {
+            const body = { policy_text: policyText };
+            if (nAgents != null) body.n_agents = nAgents;
             const res = await fetch(API_BASE + '/api/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ policy_text: policyText })
+                body: JSON.stringify(body)
             });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
                 throw new Error(err.error || res.statusText || 'Analysis failed');
             }
             return res.json();
+        }
+
+        window.sentimentTimelineData = [];
+
+        function buildSentimentTimelinePaths(data) {
+            const supportPath = document.getElementById('path-support');
+            const opposePath = document.getElementById('path-oppose');
+            const neutralPath = document.getElementById('path-neutral');
+            if (!supportPath || !opposePath || !neutralPath) return;
+            if (!data || data.length < 2) {
+                const s = window.lastAnalysisResult?.summary;
+                const support = (s?.pct_support || 0) / 100;
+                const oppose = (s?.pct_oppose || 0) / 100;
+                const neutral = (s?.pct_neutral || 100) / 100;
+                data = [
+                    { t: 0, support: support * 0.3, oppose: oppose * 0.3, neutral: 0.4 },
+                    { t: 0.25, support: support * 0.6, oppose: oppose * 0.6, neutral: neutral * 0.8 },
+                    { t: 0.5, support: support * 0.85, oppose: oppose * 0.85, neutral: neutral },
+                    { t: 0.75, support: support * 0.95, oppose: oppose * 0.95, neutral: neutral },
+                    { t: 1, support, oppose, neutral }
+                ];
+            }
+            const y = (pct) => Math.max(0, 50 - pct * 45);
+            const pts = (arr, key) => arr.map((p, i) => (i === 0 ? 'M' : 'L') + (p.t * 100) + ',' + y(p[key])).join(' ');
+            supportPath.setAttribute('d', pts(data, 'support'));
+            opposePath.setAttribute('d', pts(data, 'oppose'));
+            neutralPath.setAttribute('d', pts(data, 'neutral'));
+            supportPath.style.strokeDasharray = '1000';
+            opposePath.style.strokeDasharray = '1000';
+            neutralPath.style.strokeDasharray = '1000';
+            supportPath.style.strokeDashoffset = '1000';
+            opposePath.style.strokeDashoffset = '1000';
+            neutralPath.style.strokeDashoffset = '1000';
+            const totalLen = 500;
+            let progress = 0;
+            const animate = () => {
+                progress += 0.02;
+                if (progress >= 1) progress = 1;
+                const offset = totalLen * (1 - progress);
+                supportPath.style.strokeDashoffset = offset;
+                opposePath.style.strokeDashoffset = offset;
+                neutralPath.style.strokeDashoffset = offset;
+                supportPath.style.transition = opposePath.style.transition = neutralPath.style.transition = 'stroke-dashoffset 0.08s linear';
+                if (progress < 1) requestAnimationFrame(animate);
+            };
+            requestAnimationFrame(animate);
+        }
+
+        function updateRaceIncomeCharts(pctSupport, pctOppose, pctNeutral) {
+            const s = pctSupport / 100, o = pctOppose / 100, n = pctNeutral / 100;
+            const setBar = (el, pct, label) => {
+                if (!el) return;
+                el.style.setProperty('--target-h', pct + '%');
+                const tooltip = el.querySelector('.absolute');
+                if (tooltip) tooltip.textContent = label + ': ' + Math.round(pct) + '%';
+            };
+            const raceBars = document.querySelectorAll('#race-chart .chart-bar');
+            const racePcts = [s, o, s, o, s, o];
+            const raceLabels = ['Support', 'Oppose', 'Support', 'Oppose', 'Support', 'Oppose'];
+            raceBars.forEach((b, i) => setBar(b, racePcts[i] * 100, raceLabels[i]));
+            const incomeBars = document.querySelectorAll('#income-chart .chart-bar');
+            [s * 100, s * 100, s * 100].forEach((p, i) => setBar(incomeBars[i], p, ['Low', 'Mid', 'High'][i]));
         }
 
         function renderAct3FromBackend(data) {
@@ -1044,6 +1128,7 @@
             if (el('act3-bar-labels')) {
                 el('act3-bar-labels').innerHTML = '<span class="text-teal-600">Support (' + s.pct_support + '%)</span><span class="text-slate-500">Neutral (' + s.pct_neutral + '%)</span><span class="text-orange-600">Oppose (' + s.pct_oppose + '%)</span>';
             }
+            updateRaceIncomeCharts(s.pct_support, s.pct_oppose, s.pct_neutral);
             if (el('act3-ai-title')) el('act3-ai-title').textContent = 'Policy impact from marginalization network.';
             if (el('act3-ai-summary') && data.most_harmed && data.most_harmed.length) {
                 const d = (data.most_harmed[0].description || '').slice(0, 280);
@@ -1058,6 +1143,7 @@
             if (typeof window.updateSentiment === 'function') {
                 window.updateSentiment(s.pct_support || 0, s.pct_oppose || 0);
             }
+            buildSentimentTimelinePaths(window.sentimentTimelineData);
         }
 
         // === ACT 1 TO ACT 2 TRANSITION ===
@@ -1079,8 +1165,11 @@
                 try {
                     if (label) label.textContent = 'Analyzing...';
                     btnSimulate.disabled = true;
-                    const data = await analyzePolicy(policyText);
+                    const nAgentsEl = document.getElementById('n-agents-select');
+                    const nAgents = nAgentsEl ? parseInt(nAgentsEl.value, 10) : null;
+                    const data = await analyzePolicy(policyText, nAgents);
                     window.lastAnalysisResult = data;
+                    window.networkInited = false; // force network to re-init with new data
                     // Populate the UI with backend results immediately
                     renderAct3FromBackend(data);
                 } catch (e) {
@@ -1442,7 +1531,9 @@
 
         function startSimulation() {
             isSimulating = true;
-            
+            window.sentimentTimelineData = [];
+            lastTimelineRadius = -1;
+
             // Apply backend sentiment data to buildings NOW (before wave starts)
             if (window.lastAnalysisResult && window.lastAnalysisResult.summary) {
                 const s = window.lastAnalysisResult.summary;
@@ -1490,6 +1581,23 @@
 
         // Live updating UI sentiments — real counts from buildings
         let revealedSupport = 0, revealedOppose = 0, revealedNeutral = 0;
+        let lastTimelineRadius = -1;
+        const TIMELINE_MILESTONES = [0, 50, 100, 150, 200];
+
+        function updateLiveTimeline() {
+            const data = window.sentimentTimelineData;
+            const liveEl = document.getElementById('live-timeline');
+            const ps = document.getElementById('live-path-support');
+            const po = document.getElementById('live-path-oppose');
+            const pn = document.getElementById('live-path-neutral');
+            if (!liveEl || !ps || !po || !pn || !data || data.length < 2) return;
+            liveEl.classList.remove('hidden');
+            const y = (pct) => Math.max(0, 50 - pct * 45);
+            const pts = (arr, key) => arr.map((p, i) => (i === 0 ? 'M' : 'L') + (p.t * 100) + ',' + y(p[key])).join(' ');
+            ps.setAttribute('d', pts(data, 'support'));
+            po.setAttribute('d', pts(data, 'oppose'));
+            pn.setAttribute('d', pts(data, 'neutral'));
+        }
 
         function animateCity() {
             requestAnimationFrame(animateCity);
@@ -1543,6 +1651,24 @@
             if (policyWave.active) {
                 policyWave.radius += 1.5;
                 const scale = policyWave.radius;
+
+                // Record sentiment timeline at milestones (T=0..4)
+                const nextMilestone = TIMELINE_MILESTONES.find(m => m > lastTimelineRadius && policyWave.radius >= m);
+                if (nextMilestone !== undefined) {
+                    lastTimelineRadius = nextMilestone;
+                    const total = revealedSupport + revealedOppose + revealedNeutral;
+                    let sPct, oPct, nPct;
+                    if (total > 0) {
+                        sPct = (revealedSupport / total) * 100;
+                        oPct = (revealedOppose / total) * 100;
+                        nPct = (revealedNeutral / total) * 100;
+                    } else {
+                        sPct = 33; oPct = 33; nPct = 34;
+                    }
+                    const t = TIMELINE_MILESTONES.indexOf(nextMilestone) / (TIMELINE_MILESTONES.length - 1);
+                    window.sentimentTimelineData.push({ t, support: sPct / 100, oppose: oPct / 100, neutral: nPct / 100 });
+                    updateLiveTimeline();
+                }
 
                 // Additive wave burst
                 waveMesh.scale.set(scale, scale, scale);
@@ -1674,14 +1800,18 @@
                     }, 20);
                 });
 
-                // Bar fills
-                document.getElementById('bar-support').style.width = '48%';
-                document.getElementById('bar-neutral').style.width = '23%';
-                document.getElementById('bar-oppose').style.width = '29%';
+                // Bar fills (from backend distribution)
+                const d = window.lastAnalysisResult?.summary;
+                if (d) {
+                    document.getElementById('bar-support').style.width = (d.pct_support || 0) + '%';
+                    document.getElementById('bar-neutral').style.width = (d.pct_neutral || 0) + '%';
+                    document.getElementById('bar-oppose').style.width = (d.pct_oppose || 0) + '%';
+                }
 
-                // Chart bars height
+                // Chart bars height (use --target-h set by updateRaceIncomeCharts)
                 document.querySelectorAll('.chart-bar').forEach(bar => {
-                    bar.style.height = bar.getAttribute('style').match(/--target-h:\s*([^;]+)/)[1];
+                    const m = (bar.getAttribute('style') || '').match(/--target-h:\s*([^%;\s]+%?)/);
+                    if (m) bar.style.height = m[1];
                 });
 
                 // Pie chart fade
@@ -1764,10 +1894,12 @@
             canvas.height = height * dpr;
             ctx.scale(dpr, dpr);
 
-            // Node data setup
+            const data = window.lastAnalysisResult;
+            const impacts = data && data.initial_damage ? data.initial_damage : [];
+            const descriptions = data && data.agent_descriptions ? data.agent_descriptions : [];
+
+            const NUM_NODES = Math.max(impacts.length, 50);
             const nodes = [];
-            const NUM_NODES = 150;
-            const STANCES = ['neutral', 'support', 'oppose'];
 
             // Attractors
             const attractors = {
@@ -1776,18 +1908,17 @@
                 'neutral': { x: width * 0.5, y: height * 0.5 }
             };
 
-            // Background/Decision data pool
+            // Fallback data when no backend
             const professions = ["Teacher", "Small Business Owner", "Software Engineer", "Service Worker", "Retired Teacher", "Student", "Healthcare Worker", "Plumber", "Freelancer"];
-            const driversSupport = ["Anticipates lower living costs.", "Believes policy improves public transit access.", "Hopes for neighborhood revitalization.", "Values the environmental components."];
-            const driversOppose = ["Fears increased property taxes.", "Worried about local business disruption.", "Skeptical of government efficiency.", "Dislikes the zoning restrictions."];
-            const driversNeutral = ["Waiting for more information.", "Policy doesn't impact them directly.", "Evaluating competing claims.", "Focused on other local issues."];
+            const driversSupport = ["Anticipates lower living costs.", "Believes policy improves public transit access."];
+            const driversOppose = ["Fears increased property taxes.", "Worried about local business disruption."];
+            const driversNeutral = ["Waiting for more information.", "Policy doesn't impact them directly."];
 
             for (let i = 0; i < NUM_NODES; i++) {
-                // Initial mostly neutral
-                const st = Math.random() > 0.3 ? 'neutral' : (Math.random() > 0.5 ? 'support' : 'oppose');
-
-                // Assign narrative data
-                const isStationaryNeutral = (st === 'neutral' && Math.random() > 0.8); // 20% of neutrals are anchors
+                const impact = impacts[i] != null ? impacts[i] : 0;
+                const st = impact > 0.05 ? 'support' : (impact < -0.05 ? 'oppose' : 'neutral');
+                const desc = descriptions[i] ? descriptions[i].description : '';
+                const isStationaryNeutral = (st === 'neutral' && Math.random() > 0.8);
                 const prof = professions[Math.floor(Math.random() * professions.length)];
                 let decis = driversNeutral[Math.floor(Math.random() * driversNeutral.length)];
                 if (st === 'support') decis = driversSupport[Math.floor(Math.random() * driversSupport.length)];
@@ -1796,30 +1927,38 @@
                 nodes.push({
                     id: i,
                     name: `Agent ${100 + i}`,
-                    x: width / 2 + (Math.random() - 0.5) * 100,
-                    y: height / 2 + (Math.random() - 0.5) * 100,
+                    x: width / 2 + (Math.random() - 0.5) * Math.min(150, NUM_NODES),
+                    y: height / 2 + (Math.random() - 0.5) * Math.min(150, NUM_NODES),
                     vx: 0,
                     vy: 0,
                     stance: st,
-                    inf: Math.random() * 0.6 + 0.2, // influence/size
+                    inf: 0.2 + Math.random() * 0.6,
                     neighbors: [],
                     history: [],
                     rippleRadius: 0,
-                    isAnchor: isStationaryNeutral, // Stays in the very middle
-                    backgroundData: `${prof}, resident for ${Math.floor(Math.random() * 20 + 1)} yrs.`,
+                    isAnchor: isStationaryNeutral,
+                    backgroundData: desc || `${prof}, resident for ${Math.floor(Math.random() * 20 + 1)} yrs.`,
                     decisionData: decis
                 });
             }
 
-            // Create fake edges
+            // Create edges (each node connects to 1–4 others)
             for (let i = 0; i < NUM_NODES; i++) {
-                const numEdges = 1 + Math.floor(Math.random() * 3);
+                const numEdges = 1 + Math.floor(Math.random() * 4);
                 for (let e = 0; e < numEdges; e++) {
                     const targetIdx = Math.floor(Math.random() * NUM_NODES);
                     if (targetIdx !== i && !nodes[i].neighbors.includes(targetIdx)) {
                         nodes[i].neighbors.push(targetIdx);
                     }
                 }
+            }
+
+            let focusedNodeId = -1;
+            function getVisibleNodeIds() {
+                if (focusedNodeId === -1) return null;
+                const set = new Set([focusedNodeId]);
+                for (const idx of nodes[focusedNodeId].neighbors) set.add(idx);
+                return set;
             }
 
             // Setup Fence Sitters initial list
@@ -1900,6 +2039,26 @@
                 return C_NEUTRAL;
             }
 
+            // Click: select node (show only it + neighbors) or click off to show all
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+
+                let hit = -1;
+                const visibleIds = getVisibleNodeIds();
+                const checkNodes = visibleIds ? nodes.filter(n => visibleIds.has(n.id)) : nodes;
+                for (const n of checkNodes) {
+                    const r = 3 + n.inf * 6;
+                    const dx = mx - n.x, dy = my - n.y;
+                    if (dx * dx + dy * dy < (r * 2) * (r * 2)) {
+                        hit = n.id;
+                        break;
+                    }
+                }
+                focusedNodeId = hit >= 0 ? hit : -1;
+            });
+
             // Hover state
             let hoveredNodeId = -1;
             canvas.addEventListener('mousemove', (e) => {
@@ -1908,7 +2067,9 @@
                 const my = e.clientY - rect.top;
 
                 hoveredNodeId = -1;
-                for (let n of nodes) {
+                const visibleIds = getVisibleNodeIds();
+                const checkNodes = visibleIds ? nodes.filter(n => visibleIds.has(n.id)) : nodes;
+                for (let n of checkNodes) {
                     const r = 3 + n.inf * 6;
                     const dx = mx - n.x;
                     const dy = my - n.y;
@@ -2019,14 +2180,17 @@
                 }
 
                 // 2. Draw Edges
+                const visibleIds = getVisibleNodeIds();
                 ctx.lineWidth = 0.5;
                 for (let n of nodes) {
+                    if (visibleIds && !visibleIds.has(n.id)) continue;
                     const rgb = getColorRgb(n.stance);
 
                     // Only draw edges if hovered, or general low opacity
                     const isHovered = (n.id === hoveredNodeId);
 
                     for (let targetIdx of n.neighbors) {
+                        if (visibleIds && !visibleIds.has(targetIdx)) continue;
                         const target = nodes[targetIdx];
 
                         const isTargetHovered = (targetIdx === hoveredNodeId);
@@ -2050,6 +2214,7 @@
 
                 // 3. Draw Nodes
                 for (let n of nodes) {
+                    if (visibleIds && !visibleIds.has(n.id)) continue;
                     const r = 3 + n.inf * 6;
                     const rgb = getColorRgb(n.stance);
 

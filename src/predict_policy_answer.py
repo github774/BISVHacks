@@ -25,8 +25,8 @@ def _load_resources(
     if _ENCODER is not None:
         return
     from sentence_transformers import SentenceTransformer
-    from answer_predictor import AnswerPredictor
-    from sentiment_head import SentimentHead
+    from src.answer_predictor import AnswerPredictor
+    from src.sentiment_head import SentimentHead
 
     data_dir = data_dir or ROOT / "data"
     model_path = model_path or data_dir / "answer_predictor.pt"
@@ -81,7 +81,7 @@ def predict_policy_answer(
     desc_emb = _ENCODER.encode(description, convert_to_numpy=True)
     q_emb = _ENCODER.encode(policy_question, convert_to_numpy=True)
 
-    from preprocessor import preprocess
+    from src.preprocessor import preprocess
     persona_blend, _ = preprocess(
         desc_emb,
         descriptions_path=str(data_dir / "archetype_descriptions.json"),

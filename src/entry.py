@@ -22,8 +22,8 @@ from sentence_transformers import SentenceTransformer
 import torch
 import torch.nn.functional as F
 
-from predict_policy_answer import _load_resources
-from preprocessor import _get_mps_data, preprocess_batched_mps_preloaded
+from src.predict_policy_answer import _load_resources
+from src.preprocessor import _get_mps_data, preprocess_batched_mps_preloaded
 
 # Add parent directory to path to import network module
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -87,9 +87,11 @@ class PolicyAnalyzer:
     ) -> np.ndarray:
         """Compute net impact = (benefit * BENEFIT_TUNING) - (damage * DAMAGE_TUNING) for each archetype.
         Loads encoder, model, SentimentHead, preprocessor data once; runs batched inference."""
-        import predict_policy_answer as m
+        import src.predict_policy_answer as m
 
         _load_resources(self.data_dir, self.data_dir / "answer_predictor.pt")
+        if m._MODEL is None:
+            raise RuntimeError("Failed to load answer predictor model; _load_resources may have failed.")
         device = next(m._MODEL.parameters()).device
         sentiment_head = m._SENTIMENT_HEAD
         encoder = m._ENCODER
@@ -230,15 +232,12 @@ class PolicyImpactSimulator:
         self.n_agents = n_agents
         self.device = device
         
-        # Initialize components: pull archetypes randomly from data/archetypes.json
+        # Initialize components: generate N unique agents with random descriptions and embeddings
         self.network = MarginalizationNetwork(
             n_agents=n_agents,
-            use_generated=False,
-            use_archetypes_json=True,
+            use_generated=True,
+            use_archetypes_json=False,
             device=device,
-            archetypes_path=self.data_dir / "archetypes.json",
-            persona_vectors_path=self.data_dir / "persona_vectors.json",
-            archetype_descriptions_path=self.data_dir / "archetype_descriptions.json",
         )
         self.analyzer = PolicyAnalyzer(
             model_name=model_name,
